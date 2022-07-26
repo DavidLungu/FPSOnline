@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9bdd9224899b2b4383737a04c3c8ab1, type: 3}
+  m_Name: BlastRifle
+  m_EditorClassIdentifier: 
+  weaponName: Blast Rifle
+  weaponModel: {fileID: 4634648159417639169, guid: 12d4865429891ca4bb04f45934cf32e3, type: 3}
+  defaultWeaponPosition: {x: 0.5, y: -0.3, z: 0.6}
+  aimingWeaponPosition: {x: 0, y: -0.18, z: 0.36}
+  weaponDamage: 18
+  weaponHeadshotMultiplier: 2
+  reserveAmmo: 180
+  clipAmmo: 30
+  fireRate: 10
+  reloadSpeed: 6
+  aimSpeed: 15
+  bulletSpread: 30
+  hipFireRecoil: {x: -8, y: 13, z: 0}
+  aimFireRecoil: {x: -8, y: 6, z: 0}
+  recoilTravelSpeed: 6
+  recoilReturnSpeed: 4
+  playerAimFOVMultiplier: 0.85
+  weaponAimFOVMultiplier: 0.5
+  weaponSwayIntensity: 1.8
+  weaponSwaySmoothing: 8
+  bulletHolePrefab: {fileID: 2103346097670830839, guid: 50a2d4c7097e78047ae1f7313e32161f, type: 3}
+  bulletImpactPrefab: {fileID: 7954361027251996622, guid: a2403ac3f68d10449bc13c32a43b8674, type: 3}
+  bulletTrail: {fileID: 6557877523922459030, guid: 6e07537c3a0089243bf2af527aa7bec7, type: 3}
