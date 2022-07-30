@@ -30,8 +30,11 @@ public class CameraController : MonoBehaviour
             Destroy(mainViewCam);
             Destroy(viewModelCam);
             Destroy(spectatorCam);
+            Destroy(mainViewCam.gameObject.GetComponent<AudioListener>());
 
+            Destroy(mainViewCam.GetComponent<AudioListener>());
             Destroy(viewModelCam.GetComponent<AudioListener>());
+            Destroy(spectatorCam.GetComponent<AudioListener>());
             return; 
         }
 

@@ -95,7 +95,8 @@ public class Weapon : MonoBehaviour {
         reserveAmmo = weaponData.reserveAmmo;
         bulletHolePrefab = weaponData.bulletHolePrefab;
         bulletImpactPrefab = weaponData.bulletImpactPrefab;
-        //bulletTrail = weaponData.bulletTrail;
+        bulletTrail = weaponData.bulletTrail;
+        bulletTrail.gameObject.layer = 6;
         weaponData.weaponModel.layer = 6;
     }
 
@@ -155,13 +156,15 @@ public class Weapon : MonoBehaviour {
             
             _hitObject = hitInfo.collider.transform.gameObject;
             
-            if(hitInfo.collider.transform.gameObject.CompareTag("Player")) 
+            if(_hitObject.CompareTag("Player")) 
             {
-                hitInfo.collider.gameObject.GetComponentInParent<IDamageable>()?.TakeDamage
+                _hitObject.GetComponentInParent<IDamageable>()?.TakeDamage
                 (
                     (_hitObject.name == "Head") ? weaponDamage * weaponHeadshotMultiplier : weaponDamage,
                     PhotonNetwork.LocalPlayer.ActorNumber
                 );
+
+                Debug.Log($"({nameof(Shoot)}){PhotonNetwork.LocalPlayer.NickName}: {PhotonNetwork.LocalPlayer.ActorNumber}");
             }
             else {
                 pv.RPC(nameof(RPC_SpawnBulletEffects), RpcTarget.All, hitInfo.point, hitInfo.normal);
@@ -183,7 +186,8 @@ public class Weapon : MonoBehaviour {
     void RPC_SpawnTrail(Vector3 hitPoint, string hitObject){
         GameObject _trail = PhotonNetwork.Instantiate(
             Path.Combine("PhotonPrefabs", "Misc", "WeaponEffects", "BulletTrail"), 
-            bulletSpawnPoint.position, Quaternion.identity
+            bulletSpawnPoint.position, 
+            Quaternion.identity
         );
 
         // TEMPORARY SOLUTION BECAUSE FINDING EACH OBJECT COLLIDER EVERY TIME WE SHOOT IS REALLY BAD FOR PERFORMANCE
@@ -253,8 +257,6 @@ public class Weapon : MonoBehaviour {
 
             yield return null;
         }
-
-        trail.transform.position = target;
 
         yield return new WaitForSeconds(trail.time);
 

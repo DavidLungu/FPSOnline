@@ -69,7 +69,8 @@ public class Launcher : MonoBehaviourPunCallbacks
         
         PhotonNetwork.GameVersion = GAME_VERSION;
         PhotonNetwork.ConnectUsingSettings();
-        PhotonNetwork.AutomaticallySyncScene = true;            
+        PhotonNetwork.AutomaticallySyncScene = true;           
+        SetCursor(); 
     }
 
     public override void OnConnectedToMaster() 
@@ -132,8 +133,7 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        MenuManager.Instance.OpenMenu("ErrorMenu");
-        errorText.text = string.Format($"{returnCode}: {message}");
+        OnErrorEncountered(returnCode, message);
     }
 
     public void JoinRoom(RoomInfo info) 
@@ -172,6 +172,11 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
+        UpdateRoomList(roomList);
+    }
+
+    private void UpdateRoomList(List<RoomInfo> roomList)
+    {
         foreach (Transform _roomListContent in roomListContent)
         {
             Destroy(_roomListContent.gameObject);
@@ -206,6 +211,12 @@ public class Launcher : MonoBehaviourPunCallbacks
         startMatchButton.SetActive(PhotonNetwork.IsMasterClient);
         mapManager.mapSelectionButton.enabled = PhotonNetwork.IsMasterClient;
     }
+    
+    private void OnErrorEncountered(short returnCode, string message)
+    {
+        MenuManager.Instance.OpenMenu("ErrorMenu");
+        errorText.text = string.Format($"{returnCode}: {message}");
+    }
 
     public void StartGame() 
     {
@@ -216,6 +227,12 @@ public class Launcher : MonoBehaviourPunCallbacks
     public void ExitApplication() 
     {
         Application.Quit();
+    }
+
+    private void SetCursor() 
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
 }

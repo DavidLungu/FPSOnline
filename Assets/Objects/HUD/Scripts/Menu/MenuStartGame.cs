@@ -6,7 +6,8 @@ using Photon.Pun;
 
 public class MenuStartGame : MonoBehaviour
 {
-    
+    [SerializeField] private GameObject leaveButton;
+
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private Transform timerTextTransform;
 
@@ -18,8 +19,12 @@ public class MenuStartGame : MonoBehaviour
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip countdownSound, countdownCompleteSound;
 
+    private PhotonView PV;
+
     private void Start() 
     {
+        PV = GetComponent<PhotonView>();
+
         EndCountdown();
     }
 
@@ -59,12 +64,19 @@ public class MenuStartGame : MonoBehaviour
         timerTextTransform.gameObject.SetActive(false);
     }
 
+    [PunRPC]
+    public void DisableLeaveButton()
+{   
+        leaveButton.SetActive(!leaveButton.activeSelf);
+    }
+
     public void OnClick()
     {
         audioSource.clip = countdownSound;
         isTimerRunning = !isTimerRunning;
 
         timerTextTransform.gameObject.SetActive(isTimerRunning);
+        PV.RPC(nameof(DisableLeaveButton), RpcTarget.All);
         
         timeRemaining = countdownTime;
         previousTime = countdownTime;

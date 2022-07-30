@@ -24,8 +24,6 @@ public class MapManager : MonoBehaviour
 
     private void Awake() 
     {
-        DontDestroyOnLoad(gameObject);
-
         pv = transform.GetComponent<PhotonView>();
     }
 

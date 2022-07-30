@@ -11,6 +11,8 @@ public class UIWeapon : MonoBehaviour
     [SerializeField] private TextMeshProUGUI reloadText;
     [SerializeField] private TextMeshProUGUI fireModeText;
 
+    [SerializeField] private GameObject weaponHUD;
+
     public WeaponManager weaponManager;
     private Weapon currentWeapon;
 
@@ -79,10 +81,6 @@ public class UIWeapon : MonoBehaviour
 
     public void DisableHUD() 
     {
-            ammoCountText.transform.gameObject.SetActive(false);
-            ammoReserveText.transform.gameObject.SetActive(false);
-            ammoBackground.transform.gameObject.SetActive(false);
-            fireModeText.transform.gameObject.SetActive(false);
-            reloadText.transform.gameObject.SetActive(false);
+        weaponHUD.SetActive(false);
     }
 }

@@ -6,16 +6,22 @@ using Photon.Pun;
 
 public class UIPlayerHealth : MonoBehaviour
 {
+    [Header("Health")]
     [SerializeField] private Image playerHealthBar;
     [SerializeField] private GameObject playerHealthBarObject;
 
     [SerializeField] private TextMeshProUGUI playerHealthText;
     [SerializeField] private GameObject playerHealthTextObject;
 
+    private TMP_Text[] killUsernames;
+    [SerializeField] private GameObject killUI, killInfoObject;
+
     
     [Header("Timer")]
-    private float remainingTime;
     [SerializeField] private TextMeshProUGUI timerCounter;
+    private float remainingTime;
+
+    [SerializeField] public TMP_Text otherPlayerName;
     [SerializeField] private GameObject respawnObject;
 
     [SerializeField] private UIWeapon weaponUI;
@@ -63,13 +69,30 @@ public class UIPlayerHealth : MonoBehaviour
         playerHealthText.text = ((int)_currentHealth).ToString();
     }
 
-    public void HUD_Respawn(float time) 
+    public void DisplayRespawn(float time) 
     {
+
         StartCoroutine(RespawnCountdown(time));
+    }
+
+    public void DisplayKill(string otherPlayer)
+    {
+        var _killInfoObject = Instantiate(killInfoObject, Vector3.zero, Quaternion.identity, killUI.transform);
+
+        killUsernames = _killInfoObject.transform.GetComponentsInChildren<TMP_Text>();
+
+        foreach (var username in killUsernames)
+        {
+            username.text = string.Format($"Killed <color=red>{otherPlayer}</color>");
+        }
+
+        Destroy(_killInfoObject, _killInfoObject.GetComponent<Animation>().clip.length);
+
     }
 
     public void EnableHUD()
     {
+        otherPlayerName.text = PhotonNetwork.LocalPlayer.NickName;
         respawnObject.SetActive(false);
         playerHealthTextObject.SetActive(true);
         playerHealthBarObject.SetActive(true);

@@ -27,7 +27,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2910574879476586960}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2910574879525937300}
@@ -418,6 +418,7 @@ MonoBehaviour:
   sensitivityMultiplier: 0.2
   orientation: {fileID: 2910574880332837016}
   playerModel: {fileID: 2910574879590550223}
+  weaponManager: {fileID: 2910574879525937300}
   cameraRot: {fileID: 2910574879729995539}
   mainViewCam: {fileID: 376552802160657850}
   viewModelCam: {fileID: 2910574879476586973}
@@ -1095,6 +1096,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 2910574879525937300}
     m_Modifications:
     - target: {fileID: -3703579111405869546, guid: 12d4865429891ca4bb04f45934cf32e3, type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 2910574880024564867}
+    - target: {fileID: -3703579111405869546, guid: 12d4865429891ca4bb04f45934cf32e3, type: 3}
       propertyPath: mainViewCam
       value: 
       objectReference: {fileID: 193116803631131120}
@@ -1102,6 +1107,10 @@ PrefabInstance:
       propertyPath: playerCamera
       value: 
       objectReference: {fileID: 193116803631131120}
+    - target: {fileID: -3703579111405869546, guid: 12d4865429891ca4bb04f45934cf32e3, type: 3}
+      propertyPath: weaponCamera
+      value: 
+      objectReference: {fileID: 2910574879476586975}
     - target: {fileID: -3703579111405869546, guid: 12d4865429891ca4bb04f45934cf32e3, type: 3}
       propertyPath: bulletSpawnPoint
       value: 
@@ -1203,6 +1212,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 2910574879525937300}
     m_Modifications:
     - target: {fileID: -508617985835059342, guid: 6b2a991806ce43d4ba66cd6fa2f601e9, type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 2910574880024564867}
+    - target: {fileID: -508617985835059342, guid: 6b2a991806ce43d4ba66cd6fa2f601e9, type: 3}
       propertyPath: mainViewCam
       value: 
       objectReference: {fileID: 193116803631131120}
@@ -1210,6 +1223,10 @@ PrefabInstance:
       propertyPath: playerCamera
       value: 
       objectReference: {fileID: 193116803631131120}
+    - target: {fileID: -508617985835059342, guid: 6b2a991806ce43d4ba66cd6fa2f601e9, type: 3}
+      propertyPath: weaponCamera
+      value: 
+      objectReference: {fileID: 2910574879476586975}
     - target: {fileID: -508617985835059342, guid: 6b2a991806ce43d4ba66cd6fa2f601e9, type: 3}
       propertyPath: bulletSpawnPoint
       value: 

@@ -57,7 +57,7 @@ public class WeaponManager : MonoBehaviourPunCallbacks {
     private void Equip(int _index) {
         if (_index == previousWeaponIndex) { return; }
 
-        if (weapons[weaponIndex].IsReloading() || weapons[weaponIndex].IsAiming()) { return; }
+        if (weapons[weaponIndex].IsReloading() || weapons[weaponIndex].IsAiming() || weapons[weaponIndex].IsShooting()) { return; }
 
         weaponIndex = _index;
 

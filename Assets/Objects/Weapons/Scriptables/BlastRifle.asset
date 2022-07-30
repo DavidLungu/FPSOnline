@@ -34,4 +34,4 @@ MonoBehaviour:
   weaponSwaySmoothing: 8
   bulletHolePrefab: {fileID: 2103346097670830839, guid: 50a2d4c7097e78047ae1f7313e32161f, type: 3}
   bulletImpactPrefab: {fileID: 7954361027251996622, guid: a2403ac3f68d10449bc13c32a43b8674, type: 3}
-  bulletTrail: {fileID: 6557877523922459030, guid: 6e07537c3a0089243bf2af527aa7bec7, type: 3}
+  bulletTrail: {fileID: 6670010285891972953, guid: 11d6a9eb0a392de4b9ad67683a2f3563, type: 3}
