@@ -21,12 +21,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float groundDetectRadius;
 
     [Header("Slopes")]
+    [SerializeField] private float maxSlopeAngle;
+    [SerializeField] private float slopeSpeedModifier;
     private RaycastHit slopeHit;
-    private Vector3 slopeMoveDirection;
 
     public bool canSprint { get; set; }
-    private bool isSprinting;
-    private bool isGrounded;
+    public bool isSprinting { get; private set; }
+    public bool isMoving { get; private set; }
+    public bool isGrounded { get; private set; }
+    private bool exitingSlope;
 
     [SerializeField] public Transform playerModel { get; private set; }
     private Transform orientationTransform;
@@ -58,11 +61,19 @@ public class PlayerController : MonoBehaviour
 
         horizontalMovement = Input.GetAxisRaw("Horizontal");
         verticalMovement = Input.GetAxisRaw("Vertical"); 
+
+        if (horizontalMovement != 0 || verticalMovement != 0) {
+            isMoving = true;
+        }
         
+        isMoving = false;
+
+
         ReadInput();
         IsGrounded();
         HandleDrag();
-        SlopeMovement();
+        GetMoveSlopeDirection();
+        SlopeControl();
     }
 
     private void FixedUpdate() 
@@ -90,8 +101,8 @@ public class PlayerController : MonoBehaviour
         if (isGrounded && !OnSlope())
             playerRigid.AddForce(inputDirection.normalized * currentSpeed * (canSprint && isSprinting ? sprintMoveSpeedModifier : walkMoveSpeedModifier), ForceMode.Acceleration);
         
-        else if (isGrounded && OnSlope())
-            playerRigid.AddForce(inputDirection.normalized * currentSpeed * (canSprint && isSprinting ? sprintMoveSpeedModifier : walkMoveSpeedModifier), ForceMode.Acceleration);
+        else if (isGrounded && OnSlope() && !exitingSlope)
+            playerRigid.AddForce(GetMoveSlopeDirection() * currentSpeed * (canSprint && isSprinting ? sprintMoveSpeedModifier : walkMoveSpeedModifier) * slopeSpeedModifier, ForceMode.Force);
         
         else if (!isGrounded)
             playerRigid.AddForce(inputDirection.normalized * currentSpeed * (walkMoveSpeedModifier * airMoveSpeedModifier));
@@ -102,35 +113,52 @@ public class PlayerController : MonoBehaviour
 
     private void AddJumpForce() 
     {
-        if (isGrounded)
+        if (isGrounded) {
             playerRigid.velocity = new Vector3(playerRigid.velocity.x, jumpForceStrength, playerRigid.velocity.z);
+            exitingSlope = true;
+        }
     }
 
     private void HandleDrag() 
     {
-            playerRigid.drag = isGrounded ? groundDrag : airDrag;
+        playerRigid.drag = isGrounded ? groundDrag : airDrag;
     }
 
     private void IsGrounded() 
     {
+        exitingSlope = false;
         isGrounded = Physics.CheckSphere(groundDetectTransform.position, groundDetectRadius, groundLayerMask);
     }
 
-    private void SlopeMovement() 
+    private void SlopeControl()
     {
-        slopeMoveDirection = Vector3.ProjectOnPlane(inputDirection.normalized, slopeHit.normal);
+        playerRigid.useGravity = !OnSlope();
+
+        if (OnSlope() && !exitingSlope)
+        {
+            if (playerRigid.velocity.magnitude > currentSpeed) {
+                playerRigid.velocity = playerRigid.velocity.normalized * currentSpeed;
+            }
+
+            if (playerRigid.velocity.y > 0) {
+                playerRigid.AddForce(Vector3.down * 80f, ForceMode.Force);
+            }
+        }
+    }
+
+    private Vector3 GetMoveSlopeDirection() 
+    {
+        return Vector3.ProjectOnPlane(inputDirection, slopeHit.normal).normalized;
     }
 
     private bool OnSlope() 
     {
         Debug.DrawRay(transform.position, Vector3.down);
-        if (Physics.Raycast(groundDetectTransform.position, Vector3.down, out slopeHit, groundDetectRadius + 1)) {
-            
-            if (slopeHit.normal != Vector3.up) 
-                return true;
-            else
-                return false;
+        if (Physics.Raycast(groundDetectTransform.position, Vector3.down, out slopeHit, groundDetectRadius - 0.25f)) {
+            float _angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            return _angle < maxSlopeAngle && _angle != 0;
         }
+
         return false;
     }
 }

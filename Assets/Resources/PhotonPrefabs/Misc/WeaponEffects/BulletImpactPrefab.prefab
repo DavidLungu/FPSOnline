@@ -4814,6 +4814,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4863076577442657966}
   - component: {fileID: 8348979934610747713}
+  - component: {fileID: -5083273113037314859}
   m_Layer: 0
   m_Name: BulletImpactPrefab
   m_TagString: Untagged
@@ -4859,3 +4860,15 @@ MonoBehaviour:
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &-5083273113037314859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7954361027251996622}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c942e6af549cea43a9ab82353e85b1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

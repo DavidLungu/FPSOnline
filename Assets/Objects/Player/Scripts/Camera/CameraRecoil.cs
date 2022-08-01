@@ -13,6 +13,8 @@ public class CameraRecoil : MonoBehaviour
     private float recoilReturnSpeed;
     
     [SerializeField] private WeaponManager weaponManager;
+
+    private Weapon currentWeapon;
     private WeaponData currentWeaponData;
     private PhotonView pv;
 
@@ -29,12 +31,17 @@ public class CameraRecoil : MonoBehaviour
     private void Update() {
         if (!pv.IsMine) { return; }
 
-        var currentWeapon = weaponManager.GetCurrentWeapon();
+        currentWeapon = weaponManager.GetCurrentWeapon();
         currentWeaponData = currentWeapon.GetWeaponData();
+    }
+
+    private void FixedUpdate() {
+        if (!pv.IsMine) { return; }
+        if (currentWeapon == null) { return; }
 
         CalculateRecoil();
         
-        if(currentWeapon.IsShooting()) { RecoilFire(currentWeapon); }
+        if(currentWeapon.IsShooting()) { RecoilFire(currentWeapon); }    
     }
 
     private void CalculateRecoil() {

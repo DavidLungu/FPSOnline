@@ -52,9 +52,11 @@ public class UIWeapon : MonoBehaviour
 
     private void UpdateSingleFireText()
     {
-        if (currentWeapon.IsSingleFire())
+        if (currentWeapon.FiringMode() == 0)
                     fireModeText.text = "S";
-                else 
+        else if (currentWeapon.FiringMode() == 1)
+                    fireModeText.text = "B";
+        else if (currentWeapon.FiringMode() == 2)
                     fireModeText.text = "A";
     }
 

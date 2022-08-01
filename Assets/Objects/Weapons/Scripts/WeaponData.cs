@@ -40,5 +40,7 @@ public class WeaponData : ScriptableObject
     public GameObject bulletHolePrefab;
     public GameObject bulletImpactPrefab;
     public TrailRenderer bulletTrail;
+    public AudioClip weaponShootingSound, weaponReloadingSound, weaponEquipSound, weaponAimSound;
+
 
 }
