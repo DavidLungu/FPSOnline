@@ -5,14 +5,13 @@ public class WeaponData : ScriptableObject
 {    
     [Header("Gun Data")]
     public string weaponName = "";
-    public GameObject weaponModel;
 
     public Vector3 defaultWeaponPosition;
     public Vector3 aimingWeaponPosition;
 
     [Header("Combat")]
     public int weaponDamage;
-    public int weaponHeadshotMultiplier;
+    public float weaponHeadshotMultiplier;
     
     [Header("Shooting")]
     public int reserveAmmo;
@@ -40,7 +39,9 @@ public class WeaponData : ScriptableObject
     public GameObject bulletHolePrefab;
     public GameObject bulletImpactPrefab;
     public TrailRenderer bulletTrail;
-    public AudioClip weaponShootingSound, weaponReloadingSound, weaponEquipSound, weaponAimSound;
 
+    [Header("Sound")]
+    public AudioClip[] weaponAudioClips;
+    public int shootAudioDistance, equipAudioDistance, reloadAudioDistance, aimAudioDistance;
 
 }

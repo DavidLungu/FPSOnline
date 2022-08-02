@@ -1,11 +1,10 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
 public class BulletImpact : MonoBehaviour
 {   
-    private ParticleSystem particleSystem;
+    private new ParticleSystem particleSystem;
 
     private PhotonView pv;
 

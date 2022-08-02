@@ -13,11 +13,10 @@ MonoBehaviour:
   m_Name: BlastRifle
   m_EditorClassIdentifier: 
   weaponName: Blast Rifle
-  weaponModel: {fileID: 4634648159417639169, guid: 12d4865429891ca4bb04f45934cf32e3, type: 3}
   defaultWeaponPosition: {x: 0.5, y: -0.3, z: 0.7}
   aimingWeaponPosition: {x: 0, y: -0.18, z: 0.36}
   weaponDamage: 18
-  weaponHeadshotMultiplier: 2
+  weaponHeadshotMultiplier: 1.45
   reserveAmmo: 180
   clipAmmo: 30
   fireRate: 12
@@ -35,7 +34,12 @@ MonoBehaviour:
   bulletHolePrefab: {fileID: 2103346097670830839, guid: 50a2d4c7097e78047ae1f7313e32161f, type: 3}
   bulletImpactPrefab: {fileID: 7954361027251996622, guid: a2403ac3f68d10449bc13c32a43b8674, type: 3}
   bulletTrail: {fileID: 6670010285891972953, guid: 11d6a9eb0a392de4b9ad67683a2f3563, type: 3}
-  weaponShootingSound: {fileID: 8300000, guid: de5a992ce1cd25147a5bf9ddc7444ecb, type: 3}
-  weaponReloadingSound: {fileID: 8300000, guid: 030b9696ef7c07b4b9dd739084d85f7a, type: 3}
-  weaponEquipSound: {fileID: 8300000, guid: 70b9f044257543042a632540d307f14a, type: 3}
-  weaponAimSound: {fileID: 8300000, guid: bc43c34456424c74c857b2e10f7a9edc, type: 3}
+  weaponAudioClips:
+  - {fileID: 8300000, guid: 70b9f044257543042a632540d307f14a, type: 3}
+  - {fileID: 8300000, guid: de5a992ce1cd25147a5bf9ddc7444ecb, type: 3}
+  - {fileID: 8300000, guid: 030b9696ef7c07b4b9dd739084d85f7a, type: 3}
+  - {fileID: 8300000, guid: bc43c34456424c74c857b2e10f7a9edc, type: 3}
+  shootAudioDistance: 150
+  equipAudioDistance: 20
+  reloadAudioDistance: 25
+  aimAudioDistance: 20

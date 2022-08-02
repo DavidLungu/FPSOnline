@@ -16,8 +16,8 @@ MonoBehaviour:
     AppIdRealtime: 5d3ec63a-b43a-405c-97b8-ae3aeb62fc52
     AppIdFusion: 
     AppIdChat: 
-    AppIdVoice: 
-    AppVersion: 0.01
+    AppIdVoice: 12b45029-8d13-4073-a06e-e26268cd4f15
+    AppVersion: 
     UseNameServer: 1
     FixedRegion: usw
     Server: 
@@ -34,24 +34,23 @@ MonoBehaviour:
   RunInBackground: 1
   StartInOfflineMode: 0
   RpcList:
+  - AddPlayer
+  - CantHearYou
+  - ChangeColour
   - ClickRpc
   - DestroyRpc
-  - DestroySpaceship
-  - Fire
-  - RespawnSpaceship
-  - Shoot
-  - RPC_UpdateHealth
-  - RPC_Shoot
-  - RPC_SpawnTrail
-  - RPC_SpawnBulletEffects
-  - RPC_TakeDamage
-  - ChangeMap
-  - RPC_ChangeMap
-  - SyncProfile
-  - DisplayMatchCountdown
   - DisableLeaveButton
-  - AddPlayer
+  - HeresWhy
+  - RPC_ChangeMap
   - RPC_PlaySound
+  - RPC_SpawnBulletEffects
+  - RPC_SpawnTrail
+  - RPC_TakeDamage
+  - RPC_UpdateHealth
+  - SyncProfile
+  - RPC_InitialiseVariables
+  - RPC_InitializeVariables
+  - RPC_PlaySoundPriority
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

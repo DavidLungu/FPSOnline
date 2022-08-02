@@ -4,8 +4,8 @@ using Photon.Pun;
 public class PlayerHealth : MonoBehaviour, IDamageable
 {
     [Header("Health")]
-    private int currentPlayerHealth;
-    [SerializeField] private int maxPlayerHealth;
+    private float currentPlayerHealth;
+    [SerializeField] private float maxPlayerHealth;
 
     [Header("Regeneration")]
     [SerializeField] private float healthRegenCooldown;
@@ -38,13 +38,13 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     {
         if (!pv.IsMine) { return; }
 
-        if(Input.GetKeyDown(KeyCode.F)) TakeDamage(200, -1); // DEBUGGING //
+        if(Input.GetKeyDown(KeyCode.G)) TakeDamage(200, -1); // DEBUGGING //
 
         RegenerateHealth();
     }
 
     [PunRPC]
-    void RPC_UpdateHealth(int health, bool addHealth) 
+    void RPC_UpdateHealth(float health, bool addHealth) 
     {
         if (!pv.IsMine) { return; }
 
@@ -56,14 +56,14 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         }
     }
 
-    public void TakeDamage(int damageAmount, int otherPlayerActor) 
+    public void TakeDamage(float damageAmount, int otherPlayerActor) 
     {
         Debug.Log(nameof(TakeDamage));
         pv.RPC(nameof(RPC_TakeDamage), RpcTarget.All, -damageAmount, otherPlayerActor);
     }
 
     [PunRPC]
-    void RPC_TakeDamage(int damageAmount, int otherPlayerActor) 
+    void RPC_TakeDamage(float damageAmount, int otherPlayerActor) 
     {
         if (!pv.IsMine) { return; }
         Debug.Log(nameof(RPC_TakeDamage));

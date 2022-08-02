@@ -4,8 +4,8 @@ using System.Collections;
 using System.IO;
 
 public class Weapon : MonoBehaviour {
-    private int weaponDamage;
-    private int weaponHeadshotMultiplier;
+    private float weaponDamage;
+    private float weaponHeadshotMultiplier;
 
     private int clipAmmo;
     private int reserveAmmo;
@@ -17,7 +17,7 @@ public class Weapon : MonoBehaviour {
     private float playerAimFOVMultiplier;
     private float weaponAimFOVMultiplier;
 
-    private AudioClip weaponShootingSound, weaponReloadingSound, weaponEquipSound, weaponAimSound;
+    [SerializeField] private AudioClip[] weaponAudioClips;
     private Vector3 defaultWeaponPosition;
     private Vector3 aimingWeaponPosition;
 
@@ -34,8 +34,9 @@ public class Weapon : MonoBehaviour {
     private GameObject bulletImpactPrefab;
     private TrailRenderer bulletTrail;
     [SerializeField] private Transform bulletSpawnPoint;
-    [SerializeField] private Transform playerCamera;
-    private AudioSource audioSource;
+    [SerializeField] private GameObject weaponModel;
+    [SerializeField] private Transform playerCamera, weaponCamera;
+    private AudioSource mainAudioSource, weaponAudioSource;
     [SerializeField] private PlayerController player;
     [SerializeField] private WeaponData weaponData;
     private CameraRecoil cameraRecoilScript;
@@ -72,8 +73,7 @@ public class Weapon : MonoBehaviour {
         InitializeWeaponData();
 
         player = transform.root.GetComponent<PlayerController>();
-        audioSource = playerCamera.GetComponent<AudioSource>();
-
+        pv.RPC(nameof(RPC_InitializeVariables), RpcTarget.All);
 
         // TEMP FIX, FIND OUT WHY IT IS NOT WORKING //
         // playerCamera = player.transform.Find("Cameras/MainViewCam").transform;
@@ -81,8 +81,8 @@ public class Weapon : MonoBehaviour {
         cameraRecoilScript = playerCamera.parent.GetComponent<CameraRecoil>();
         bulletSpawnPoint = transform.Find("BulletSpawnPoint").transform;
 
-        pv.RPC(nameof(RPC_PlaySound), RpcTarget.All, weaponEquipSound.name);
 
+        PlaySound(0, weaponData.equipAudioDistance, false);
 
         currentAmmo = clipAmmo;
         canAim = true;
@@ -95,8 +95,8 @@ public class Weapon : MonoBehaviour {
 
         canShoot = false;
 
-        if (audioSource != null && weaponEquipSound != null)
-            pv.RPC(nameof(RPC_PlaySound), RpcTarget.All, weaponEquipSound.name);
+        PlaySound(0, weaponData.equipAudioDistance, false);
+
     }
 
     private void Update() 
@@ -147,21 +147,31 @@ public class Weapon : MonoBehaviour {
         }
 
     }
+
+    [PunRPC]
+    void RPC_InitializeVariables()
+    {
+        mainAudioSource = playerCamera.GetComponent<AudioSource>();
+        weaponAudioSource = weaponCamera.GetComponent<AudioSource>();
+
+        mainAudioSource.rolloffMode = AudioRolloffMode.Custom;
+        weaponAudioSource.rolloffMode = AudioRolloffMode.Custom;
+    }
+    
     private void InitializeWeaponData() 
     {
-
         clipAmmo = weaponData.clipAmmo;
         reserveAmmo = weaponData.reserveAmmo;
         bulletHolePrefab = weaponData.bulletHolePrefab;
         bulletImpactPrefab = weaponData.bulletImpactPrefab;
         bulletTrail = weaponData.bulletTrail;
         bulletTrail.gameObject.layer = 6;
-        weaponData.weaponModel.layer = 6;
+        weaponModel.layer = 6;
 
-        weaponShootingSound = weaponData.weaponShootingSound;
-        weaponReloadingSound = weaponData.weaponReloadingSound;
-        weaponEquipSound = weaponData.weaponEquipSound;
-        weaponAimSound = weaponData.weaponAimSound;
+        foreach (Transform child in weaponModel.transform) 
+        {
+            child.gameObject.layer = 6;
+        }
     }
 
     private void UpdateWeaponData() 
@@ -222,10 +232,7 @@ public class Weapon : MonoBehaviour {
 
         currentAmmo--;
 
-        if(weaponShootingSound != null)
-        {
-            pv.RPC(nameof(RPC_PlaySound), RpcTarget.All, weaponShootingSound.name);
-        }
+        PlaySound(1, weaponData.shootAudioDistance, true);
 
         
         if (Physics.Raycast(playerCamera.position, (isAiming ? playerCamera.forward : BulletSpread()), out var hitInfo, 1000f)) {
@@ -274,12 +281,27 @@ public class Weapon : MonoBehaviour {
         StartCoroutine(SpawnTrail(_trail.GetComponent<TrailRenderer>(), (GameObject.Find(hitObject).GetComponent<Collider>() ? hitPoint : playerCamera.position + playerCamera.forward * 100f)));
     }
 
-    [PunRPC]
-    void RPC_PlaySound(string audioName)
+    private void PlaySound(byte audioClip, int maxDistance, bool hasPriority)
     {
-        string path = string.Format($"PhotonPrefabs/Audio/Weapons/{weaponData.weaponName}/{audioName}");
-        AudioClip audioClip = Resources.Load<AudioClip>(path); 
-        audioSource.PlayOneShot(audioClip);
+        if (hasPriority)
+            pv.RPC(nameof(RPC_PlaySoundPriority), RpcTarget.All, audioClip, maxDistance);
+        else
+            pv.RPC(nameof(RPC_PlaySound), RpcTarget.All, audioClip, maxDistance);
+
+    }
+
+    [PunRPC]
+    void RPC_PlaySoundPriority(byte audioClip, int maxDistance)
+    {
+        mainAudioSource.PlayOneShot(weaponData.weaponAudioClips[audioClip]);
+        mainAudioSource.maxDistance = maxDistance;
+    }
+
+    [PunRPC]
+    void RPC_PlaySound(byte audioClip, int maxDistance)
+    {
+        weaponAudioSource.PlayOneShot(weaponData.weaponAudioClips[audioClip]);
+        weaponAudioSource.maxDistance = maxDistance;
     }
 
     private void Aim() 
@@ -299,8 +321,7 @@ public class Weapon : MonoBehaviour {
 
         if (Input.GetMouseButtonDown(1)) 
         {
-            if (weaponAimSound != null && isAiming) 
-                pv.RPC(nameof(RPC_PlaySound), RpcTarget.All, weaponAimSound.name);
+            PlaySound(3, weaponData.aimAudioDistance, false);
         } 
 
         Vector3 destinationPosition = Vector3.Lerp(transform.localPosition, _target, Time.deltaTime * aimSpeed);
@@ -346,7 +367,7 @@ public class Weapon : MonoBehaviour {
 
     private IEnumerator ReloadingCooldown() 
     {
-        pv.RPC(nameof(RPC_PlaySound), RpcTarget.All, weaponReloadingSound.name);
+        PlaySound(2, weaponData.reloadAudioDistance, false);
 
         isReloading = true;
         canAim = false;
