@@ -36,7 +36,7 @@ public class CameraFOV : MonoBehaviour
 
     private void AdjustCameraFOV() 
     {
-        if(currentWeapon.IsAiming()) {
+        if(currentWeapon.isAiming) {
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, defaultPlayerFOV * playerAimFOVMultiplier, Time.deltaTime * 8f);
             weaponCamera.fieldOfView = Mathf.Lerp(weaponCamera.fieldOfView, defaultWeaponFOV * weaponAimFOVMultiplier, Time.deltaTime * 8f);
         } else {

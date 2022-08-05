@@ -1,8 +1,9 @@
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.IO;
+using TMPro;
 using Photon.Pun;
 using Photon.Realtime;
 using ExitGames.Client.Photon;
@@ -26,8 +27,16 @@ public class PlayerInfo
 public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback 
 {
     public GameObject playerController { get; private set; }
+
     public GameObject playerHUD { get; private set; }
+    private UIWeapon uiWeapon;
+    private UIPlayerHealth uiHealth;
+
     private UILeaderboard leaderboard;
+    private TMP_Text uiMatchWinner;
+    public GameObject uiEndMatch { get; private set; }
+    public GameState currentState;
+    private GameMode currentMode;
 
     public ProfileData playerProfile { get; set; }
     private string playerUsername;
@@ -38,6 +47,8 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public List<PlayerInfo> playerInfo = new List<PlayerInfo>();
     public int myIndex;
+
+    private string mainMenu = RoomManager.Instance.mainMenu;
 
     private PhotonView pv;
 
@@ -57,7 +68,11 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         if(!pv.IsMine) return;
 
-        ValidateConnection();        
+        ValidateConnection();   
+             
+        currentState = GameState.Playing;
+        currentMode = GameManager.Instance.mode;
+
         CreatePlayerController();
         CreatePlayerHUD();
         NewPlayerSend(Launcher.Instance.myProfile);
@@ -76,6 +91,12 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private void Update()
     {
         if(!pv.IsMine) return;
+        
+        if (currentState == GameState.Ending) 
+        { 
+            StopAllCoroutines();
+            return; 
+        }
 
         if (Input.GetKey(KeyCode.Tab)) {
              CreateLeaderboard();
@@ -86,10 +107,10 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         } 
     }
 
-    public override void OnLeftRoom ()
+    private void InitializeUI()
     {
-        base.OnLeftRoom();
-        SceneManager.LoadScene("menu_scene");
+        uiWeapon = playerHUD.GetComponent<UIWeapon>();
+        uiHealth = playerHUD.GetComponent<UIPlayerHealth>();
     }
 
     [PunRPC]
@@ -102,7 +123,66 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private void ValidateConnection()
     {
         if (PhotonNetwork.IsConnected) return;
-        SceneManager.LoadScene("menu_scene");
+        
+        SceneManager.LoadScene(mainMenu);
+    }
+
+    private void StateCheck()
+    {
+        if (currentState == GameState.Ending)
+        {
+            EndMatch();
+        }
+    }
+
+    private void ScoreCheck()
+    {
+        bool matchWon = false;
+        string winner = "Player#0000";
+        int objectiveCount = 0;
+
+
+        foreach (PlayerInfo _playerInfo in playerInfo)
+        {
+            winner = _playerInfo.profile.username;
+
+            if (currentMode == GameMode.FFA)
+            {
+                objectiveCount = _playerInfo.kills;
+
+                if (winner == PhotonNetwork.LocalPlayer.NickName) {
+                    uiMatchWinner.text = string.Format($"<color=yellow><b>You</b></color> Won!");
+                    GameManager.Instance.isWinner = true;
+                }
+                else {
+                    uiMatchWinner.text = string.Format($"<color=red><b>You</b></color> Lose");
+                    GameManager.Instance.isWinner = false;
+                }
+            }
+
+            matchWon = GameManager.Instance.CheckWin(objectiveCount);
+            
+            if (matchWon) break;
+        }
+
+        if (matchWon)
+        {
+            if (PhotonNetwork.IsMasterClient && currentState != GameState.Ending)
+            {
+                UpdatePlayersSend((int)GameState.Ending, playerInfo);
+            }
+        }
+    }
+
+    private void EndMatch()
+    {
+        currentState = GameState.Ending;
+        
+        uiWeapon.DisableHUD();
+        uiHealth.DisableHUD();
+
+        CreateLeaderboard();
+        GameManager.Instance.EndMatch();
     }
 
     public void OnEvent (EventData photonEvent)
@@ -140,9 +220,11 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         PhotonNetwork.RaiseEvent(
             (byte)EventCodes.NewPlayer,
             package,
-            new RaiseEventOptions {Receivers = ReceiverGroup.MasterClient},
+            new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient },
             new SendOptions { Reliability = true }
         );
+
+        Debug.Log(nameof(NewPlayerSend) + " called");
     }
 
     public void NewPlayerReceive(object[] data)
@@ -159,20 +241,23 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         );
 
         playerInfo.Add(_playerInfo);
+        Debug.Log(_playerInfo.profile.username);
 
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("PlayerManager")) 
         {
-            pv.RPC(nameof(SyncProfile), RpcTarget.All, Launcher.Instance.myProfile.username, Launcher.Instance.myProfile.level, Launcher.Instance.myProfile.xp);
+            SyncProfile(Launcher.Instance.myProfile.username, Launcher.Instance.myProfile.level, Launcher.Instance.myProfile.xp);
         }
 
-        UpdatePlayersSend(playerInfo);
+        UpdatePlayersSend((int)currentState, playerInfo);
     }
 
-    public void UpdatePlayersSend(List<PlayerInfo> info)
+    public void UpdatePlayersSend(int state, List<PlayerInfo> info)
     {
-        object[] package = new object[info.Count];
+        object[] package = new object[info.Count + 1];
 
-        for ( int i = 0; i < info.Count; i++)                    // get the info of all players
+        package[0] = state;
+
+        for (int i = 0; i < info.Count; i++)                    // get the info of all players
         {
             object[] piece = new object[6];
 
@@ -183,22 +268,33 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
             piece[4] = info[i].kills;
             piece[5] = info[i].deaths;
 
-            package[i] = piece;
+            package[i+1] = piece;
         }
 
         PhotonNetwork.RaiseEvent(
             (byte)EventCodes.UpdatePlayers,
             package,
-            new RaiseEventOptions {Receivers = ReceiverGroup.All},
+            new RaiseEventOptions { Receivers = ReceiverGroup.All },
             new SendOptions { Reliability = true }
         );
+        Debug.Log(nameof(UpdatePlayersReceive) + " called");
     }
 
     public void UpdatePlayersReceive(object[] data)
     {
+        currentState = (GameState)data[0];
+
+        if (playerInfo.Count < data.Length - 1)
+        {
+            foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("PlayerManager")) 
+            {
+                SyncProfile(Launcher.Instance.myProfile.username, Launcher.Instance.myProfile.level, Launcher.Instance.myProfile.xp);
+            }
+        }
+
         playerInfo = new List<PlayerInfo>();
 
-        for (int i = 0; i < data.Length; i++)
+        for (int i = 1; i < data.Length; i++)
         {
             object[] extract = (object[]) data[i];
 
@@ -213,15 +309,17 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
                 (short) extract[5]
             );
 
+            Debug.Log(PhotonNetwork.PlayerList);
             playerInfo.Add(_playerInfo);
-            Debug.Log($"{(string)extract[0]} - \nKills: {(short)extract[4]} \nDeaths: {(short)extract[5]}");
 
             if (PhotonNetwork.LocalPlayer.ActorNumber == _playerInfo.playerActor) 
             {
-                myIndex = i;
-                Debug.Log($"Actor Number: {PhotonNetwork.LocalPlayer.ActorNumber} - Player Actor: {_playerInfo.playerActor}");
+                myIndex = i - 1;
+                Debug.Log($"My actor Number: {PhotonNetwork.LocalPlayer.ActorNumber} - Player Actor: {_playerInfo.playerActor}");
             }
         }
+
+        StateCheck();
     }
 
     public void ChangeStatSend(int actor, int otherActor, byte stat, byte amount)
@@ -245,7 +343,7 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
         for (int i = 0; i < playerInfo.Count; i++)
         {
-            if (playerInfo[i].playerActor == actor)
+            if (playerInfo[i].playerActor == actor && currentState != GameState.Ending)
             {
                 switch (stat)
                 {
@@ -268,9 +366,11 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
                 if (i == myIndex) { if (leaderboard.leaderboardObject.activeSelf) CreateLeaderboard(); }
                 if (leaderboard.leaderboardObject.activeSelf) CreateLeaderboard();
 
-                return;
+                break;
             }
         }
+
+        ScoreCheck();
     }
 
     private void GetSpawnPoints() 
@@ -289,15 +389,24 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void CreatePlayerHUD() 
     {
+        if (currentState == GameState.Ending) return;
+
         playerHUD = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "UI", "PlayerHUD"), Vector3.zero, Quaternion.identity);
         playerHUD.transform.SetParent(this.transform, false);
-        playerHUD.GetComponent<UIWeapon>().weaponManager = playerController.GetComponentInChildren<WeaponManager>();
-        playerHUD.GetComponent<UIPlayerHealth>().playerHealthScript = playerController.GetComponent<PlayerHealth>();
+
+        InitializeUI();
+
+        uiWeapon.weaponManager = playerController.GetComponentInChildren<WeaponManager>();
+        uiHealth.playerHealthScript = playerController.GetComponent<PlayerHealth>();
+        uiEndMatch = playerHUD.transform.Find("EndMatch").gameObject;
+        uiMatchWinner = uiEndMatch.transform.Find("Winner").GetComponent<TMP_Text>();
+
+        uiEndMatch.SetActive(false);
 
         leaderboard = playerHUD.GetComponent<UILeaderboard>();
     }
 
-    private void CreateLeaderboard()
+    public void CreateLeaderboard()
     {
         string _gamemodeName = "Free For All";
         string _mapName = "Bastion";
@@ -306,6 +415,8 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void CreatePlayerController() 
     {
+        if (currentState == GameState.Ending) return;
+
         if (playerHUD != null) {
             PhotonNetwork.Destroy(playerHUD);
         }
@@ -327,10 +438,13 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {   
         Debug.Log($"({nameof(DisplayKill)}) Other player actor: " + otherActor);
         playerHUD.GetComponent<UIPlayerHealth>().DisplayKill(PhotonNetwork.CurrentRoom.GetPlayer(otherActor).NickName);
+        playerHUD.GetComponent<UIWeapon>().DisplayHitmarker(2);
     }
 
     public void DestroyPlayer() 
-    { 
+    {         
+        if (currentState == GameState.Ending) return;
+
         StartCoroutine(RespawnCountdown());
     }
 

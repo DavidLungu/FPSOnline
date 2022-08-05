@@ -66,6 +66,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34de307b1b2ef56458c00d4b153d766f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentState: 0
   spawnPoints: []
   respawnTime: 5
   myIndex: 0

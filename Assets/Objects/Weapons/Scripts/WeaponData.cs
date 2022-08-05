@@ -16,7 +16,7 @@ public class WeaponData : ScriptableObject
     [Header("Shooting")]
     public int reserveAmmo;
     public int clipAmmo;
-    public int fireRate;
+    public float fireRate;
     public float reloadSpeed;
     public float aimSpeed;
     public float bulletSpread;
@@ -30,6 +30,7 @@ public class WeaponData : ScriptableObject
     [Header("Camera Settings")]
     public float playerAimFOVMultiplier;
     public float weaponAimFOVMultiplier;
+    public float scopeAimFOVMultiplier;
 
    [Header("Sway")]
     public float weaponSwayIntensity;

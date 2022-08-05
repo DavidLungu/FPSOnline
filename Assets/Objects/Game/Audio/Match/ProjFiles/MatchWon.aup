@@ -1,0 +1,82 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="MatchWon_data" version="1.3.0" audacityversion="2.3.3" sel0="0.0000000000" sel1="5.8640136054" vpos="0" h="2.4250656434" zoom="385.1442135435" rate="44100.0" snapto="off" selectionformat="hh:mm:ss + milliseconds" frequencyformat="Hz" bandwidthformat="octaves">
+	<tags>
+		<tag name="Software" value="Lavf56.40.101"/>
+		<tag name="major_brand" value="mp42"/>
+		<tag name="minor_version" value="0"/>
+		<tag name="compatible_brands" value="isommp42"/>
+	</tags>
+	<wavetrack name="Victory" isSelected="1" height="150" minimized="0" channel="0" linked="1" mute="0" solo="0" rate="48000" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="0.00000000" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="51846">
+				<waveblock start="0">
+					<simpleblockfile filename="e08086a0.au" len="51846" min="-0.446852" max="0.510784" rms="0.099075"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+		<waveclip offset="1.08012500" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="12213">
+				<waveblock start="0">
+					<simpleblockfile filename="e08080a5.au" len="12213" min="-0.051673" max="0.044056" rms="0.012197"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Victory" isSelected="1" height="150" minimized="0" channel="1" linked="0" mute="0" solo="0" rate="48000" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="0.00000000" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="51846">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808fb8.au" len="51846" min="-0.47851" max="0.513491" rms="0.09731"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+		<waveclip offset="1.08012500" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="12213">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808ae2.au" len="12213" min="-0.048254" max="0.046784" rms="0.013835"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="ytmp3free.cc_team-fortress-2-soundtrack-main-theme-youtubemp3free.org" isSelected="1" height="150" minimized="0" channel="0" linked="1" mute="0" solo="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="0.00000000" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="128243">
+				<waveblock start="0">
+					<simpleblockfile filename="e0800366.au" len="128243" min="-0.414468" max="0.36953" rms="0.061324"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+		<waveclip offset="2.90800454" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="130360">
+				<waveblock start="0">
+					<simpleblockfile filename="e0800295.au" len="130360" min="-0.478464" max="0.503151" rms="0.080538"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="ytmp3free.cc_team-fortress-2-soundtrack-main-theme-youtubemp3free.org" isSelected="1" height="150" minimized="0" channel="1" linked="0" mute="0" solo="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="0.00000000" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="128243">
+				<waveblock start="0">
+					<simpleblockfile filename="e0800f59.au" len="128243" min="-0.484212" max="0.410134" rms="0.066479"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+		<waveclip offset="2.90800454" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="130360">
+				<waveblock start="0">
+					<simpleblockfile filename="e0800127.au" len="130360" min="-0.485522" max="0.490643" rms="0.096424"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+</project>

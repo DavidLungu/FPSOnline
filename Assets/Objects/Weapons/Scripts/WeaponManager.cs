@@ -57,8 +57,6 @@ public class WeaponManager : MonoBehaviourPunCallbacks {
     private void Equip(int _index) {
         if (_index == previousWeaponIndex) { return; }
 
-        if (weapons[weaponIndex].IsReloading() || weapons[weaponIndex].IsAiming() || weapons[weaponIndex].IsShooting()) { return; }
-
         weaponIndex = _index;
 
         weapons[weaponIndex].gameObject.SetActive(true);
@@ -66,6 +64,10 @@ public class WeaponManager : MonoBehaviourPunCallbacks {
         currentWeapon = weapons[weaponIndex];
 
         if(previousWeaponIndex != -1) {
+            weapons[previousWeaponIndex].StopAllCoroutines();
+            weapons[previousWeaponIndex].IsReloading(false);
+            weapons[previousWeaponIndex].IsAiming(false);
+            weapons[previousWeaponIndex].IsShooting(false);
             weapons[previousWeaponIndex].gameObject.SetActive(false);
             weapons[previousWeaponIndex].isWeaponHeld = false;
         }

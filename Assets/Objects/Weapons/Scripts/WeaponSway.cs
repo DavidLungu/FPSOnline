@@ -33,7 +33,7 @@ public class WeaponSway : MonoBehaviour
         Quaternion _rotationX = Quaternion.AngleAxis(_mouseY, Vector3.right);
         Quaternion _rotationY = Quaternion.AngleAxis(-_mouseX, Vector3.up);
 
-        if(WeaponScript.IsAiming() || WeaponScript.IsReloading()) { 
+        if(WeaponScript.isAiming || WeaponScript.isReloading) { 
             _rotationX = Quaternion.AngleAxis(0, Vector3.right);
             _rotationY = Quaternion.AngleAxis(0, Vector3.up);
         }

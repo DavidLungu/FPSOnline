@@ -26,6 +26,7 @@ public class UIPlayerHealth : MonoBehaviour
 
     [SerializeField] private UIWeapon weaponUI;
     public PlayerHealth playerHealthScript { get; set; }
+    private PlayerManager playerManager;
     private PhotonView pv;
 
     private void Awake() 
@@ -40,12 +41,21 @@ public class UIPlayerHealth : MonoBehaviour
             return; 
         }
 
+        playerManager = transform.root.GetComponent<PlayerManager>();
+
         EnableHUD();
     }
 
     private void Update() 
     {
         if (!pv.IsMine) { return; }
+        if (playerManager.currentState == GameState.Ending) 
+        {
+            StopAllCoroutines();
+            respawnObject.SetActive(false);
+            
+            return;
+        }
 
         UpdateVariables();
         UpdateHealthBar();
@@ -71,7 +81,6 @@ public class UIPlayerHealth : MonoBehaviour
 
     public void DisplayRespawn(float time) 
     {
-
         StartCoroutine(RespawnCountdown(time));
     }
 
@@ -105,7 +114,6 @@ public class UIPlayerHealth : MonoBehaviour
     }
 
     private IEnumerator RespawnCountdown(float time) {
-        
         remainingTime = time;
 
         DisableHUD();

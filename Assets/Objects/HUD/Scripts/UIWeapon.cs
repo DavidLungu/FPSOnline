@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using Photon.Pun;
 
@@ -11,12 +12,21 @@ public class UIWeapon : MonoBehaviour
     [SerializeField] private TextMeshProUGUI reloadText;
     [SerializeField] private TextMeshProUGUI fireModeText;
 
+    [SerializeField] private GameObject hitMarkerObject;
+
     [SerializeField] private GameObject weaponHUD;
 
     public WeaponManager weaponManager;
     private Weapon currentWeapon;
-
+    
     private PhotonView pv;
+
+    private enum DamageState
+    {
+        HEADSHOT,
+        BODYSHOT,
+        KILLSHOT
+    }
 
     private void Awake() 
     {
@@ -67,7 +77,7 @@ public class UIWeapon : MonoBehaviour
         else
             reloadText.text = "RELOADING";
 
-        if(currentWeapon.IsReloading() || currentWeapon.GetCurrentAmmo() <= 0 && currentWeapon.GetReserveAmmo() <= 0) {
+        if(currentWeapon.isReloading || currentWeapon.GetCurrentAmmo() <= 0 && currentWeapon.GetReserveAmmo() <= 0) {
             ammoCountText.transform.gameObject.SetActive(false);
             ammoReserveText.transform.gameObject.SetActive(false);
             fireModeText.transform.gameObject.SetActive(false);
@@ -84,5 +94,20 @@ public class UIWeapon : MonoBehaviour
     public void DisableHUD() 
     {
         weaponHUD.SetActive(false);
+    }
+
+    public void DisplayHitmarker(byte state)
+    {
+        Color hitmarkerColour = Color.white;
+
+        if (state == (byte)DamageState.HEADSHOT) hitmarkerColour = Color.yellow;
+        
+        else if (state == (byte)DamageState.BODYSHOT) hitmarkerColour = Color.white;
+        
+        else if (state == (byte)DamageState.KILLSHOT) hitmarkerColour = Color.red;
+
+        var _hitMarker = GameObject.Instantiate(hitMarkerObject, transform, false);
+        _hitMarker.GetComponent<Image>().color = hitmarkerColour;
+        Destroy(_hitMarker, 0.5f);
     }
 }

@@ -11,7 +11,7 @@ public class MenuStartGame : MonoBehaviour
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private Transform timerTextTransform;
 
-    private float countdownTime = 4.0f;
+    private float countdownTime = 0f;
     private float previousTime;
     private float timeRemaining;
     private bool isTimerRunning;
@@ -41,6 +41,8 @@ public class MenuStartGame : MonoBehaviour
 
     private void StartCountdown()
     {
+        PV.RPC(nameof(Launcher.Instance.StartGame), RpcTarget.All);
+        
         if(timeRemaining <= 1)
         {
             audioSource.clip = countdownCompleteSound;

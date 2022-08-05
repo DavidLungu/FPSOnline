@@ -4,8 +4,8 @@ using Photon.Pun;
 public class PlayerHealth : MonoBehaviour, IDamageable
 {
     [Header("Health")]
-    private float currentPlayerHealth;
     [SerializeField] private float maxPlayerHealth;
+    public float currentPlayerHealth { get; private set; }
 
     [Header("Regeneration")]
     [SerializeField] private float healthRegenCooldown;
@@ -16,7 +16,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     private bool canRegenerate;
     private bool addHealth = true;
 
-    private PlayerManager playerManager;
+    public PlayerManager playerManager { get; private set; }
     private PhotonView pv;
     
     public Vector2 GetHealth() { return new Vector2(maxPlayerHealth, currentPlayerHealth); }

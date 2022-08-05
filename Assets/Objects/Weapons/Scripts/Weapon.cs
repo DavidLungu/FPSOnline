@@ -10,7 +10,7 @@ public class Weapon : MonoBehaviour {
     private int clipAmmo;
     private int reserveAmmo;
     private int currentAmmo;
-    private int fireRate;
+    private float fireRate;
     private float reloadSpeed;
     private float aimSpeed;
     private float bulletSpread;
@@ -18,41 +18,45 @@ public class Weapon : MonoBehaviour {
     private float weaponAimFOVMultiplier;
 
     [SerializeField] private AudioClip[] weaponAudioClips;
-    private Vector3 defaultWeaponPosition;
-    private Vector3 aimingWeaponPosition;
+    protected Vector3 defaultWeaponPosition { get; private set; }
+    protected Vector3 aimingWeaponPosition { get; private set; }
 
     [SerializeField, Range(0, 2)] private int firingMode;
     
     public bool isWeaponHeld;
-    private bool isShooting;
-    private bool isReloading;
-    private bool isAiming;
-    private bool canAim;
-    private bool canShoot;
-    
+    public bool isShooting { get; private set; }
+    public bool isReloading { get; private set; }
+    public bool isAiming { get; protected set; }
+    public bool canAim { get; private set; }
+    public bool canShoot { get; private set; }
     private GameObject bulletHolePrefab;
     private GameObject bulletImpactPrefab;
     private TrailRenderer bulletTrail;
-    [SerializeField] private Transform bulletSpawnPoint;
+    [SerializeField] protected Transform bulletSpawnPoint;
     [SerializeField] private GameObject weaponModel;
-    [SerializeField] private Transform playerCamera, weaponCamera;
+    [SerializeField] public Transform playerCamera, weaponCamera;
     private AudioSource mainAudioSource, weaponAudioSource;
-    [SerializeField] private PlayerController player;
-    [SerializeField] private WeaponData weaponData;
+    [SerializeField] protected PlayerController player;
+    [SerializeField] protected WeaponData weaponData;
     private CameraRecoil cameraRecoilScript;
-    private PhotonView pv;
+    protected PhotonView pv;
     
     public float GetCurrentAmmo() => currentAmmo;
     public float GetClipAmmo() => clipAmmo;
     public float GetReserveAmmo() => reserveAmmo;
 
     public void ToggleShoot() { canShoot = true; }
+    public void ToggleAim() { canAim = true; }
 
-    public bool IsShooting() => isShooting;
-    public bool IsAiming() => isAiming;
-    public bool IsReloading() => isReloading;
+
+    public bool IsShooting(bool _isShooting) => isShooting = _isShooting;
+    public bool IsAiming(bool _isAiming) => isAiming = _isAiming;
+    public bool IsReloading(bool _isReloading) => isReloading = _isReloading;
     public int FiringMode() => firingMode;
     public WeaponData GetWeaponData() => weaponData;
+    
+    private UIWeapon weaponHUD;
+    private PlayerManager playerManager;
 
     public enum FireMode
     {
@@ -61,23 +65,24 @@ public class Weapon : MonoBehaviour {
         AUTO_FIRE
     }
 
-    private void Awake() 
+    protected virtual void Awake() 
     {
         pv = GetComponent<PhotonView>();
     }
 
-    private void Start() 
+    protected virtual void Start() 
     {
         if(!pv.IsMine) { return; }
         
         InitializeWeaponData();
 
         player = transform.root.GetComponent<PlayerController>();
+        playerManager = transform.root.GetComponent<PlayerHealth>().playerManager;
+        weaponHUD = playerManager.playerHUD.GetComponent<UIWeapon>();
         pv.RPC(nameof(RPC_InitializeVariables), RpcTarget.All);
 
         // TEMP FIX, FIND OUT WHY IT IS NOT WORKING //
         // playerCamera = player.transform.Find("Cameras/MainViewCam").transform;
-        
         cameraRecoilScript = playerCamera.parent.GetComponent<CameraRecoil>();
         bulletSpawnPoint = transform.Find("BulletSpawnPoint").transform;
 
@@ -85,21 +90,21 @@ public class Weapon : MonoBehaviour {
         PlaySound(0, weaponData.equipAudioDistance, false);
 
         currentAmmo = clipAmmo;
-        canAim = true;
     }
 
-    private void OnEnable() 
+    protected void OnEnable() 
     {
         if(pv == null) return;
         if(!pv.IsMine) return;
 
         canShoot = false;
+        isAiming = false;
 
         PlaySound(0, weaponData.equipAudioDistance, false);
-
+        transform.localPosition = weaponData.defaultWeaponPosition;
     }
 
-    private void Update() 
+    protected virtual void Update() 
     {
         if(!pv.IsMine) { return; }
 
@@ -112,7 +117,7 @@ public class Weapon : MonoBehaviour {
         Aim();       
     }
 
-    private void ReadInputs() 
+    protected void ReadInputs() 
     {
         if (Input.GetKeyDown(KeyCode.R) && !isReloading && currentAmmo < clipAmmo && reserveAmmo > 0) 
         {
@@ -149,7 +154,7 @@ public class Weapon : MonoBehaviour {
     }
 
     [PunRPC]
-    void RPC_InitializeVariables()
+    protected virtual void RPC_InitializeVariables()
     {
         mainAudioSource = playerCamera.GetComponent<AudioSource>();
         weaponAudioSource = weaponCamera.GetComponent<AudioSource>();
@@ -158,14 +163,14 @@ public class Weapon : MonoBehaviour {
         weaponAudioSource.rolloffMode = AudioRolloffMode.Custom;
     }
     
-    private void InitializeWeaponData() 
+    protected virtual void InitializeWeaponData() 
     {
         clipAmmo = weaponData.clipAmmo;
         reserveAmmo = weaponData.reserveAmmo;
         bulletHolePrefab = weaponData.bulletHolePrefab;
         bulletImpactPrefab = weaponData.bulletImpactPrefab;
         bulletTrail = weaponData.bulletTrail;
-        bulletTrail.gameObject.layer = 6;
+        bulletTrail.gameObject.layer = 8;
         weaponModel.layer = 6;
 
         foreach (Transform child in weaponModel.transform) 
@@ -174,7 +179,7 @@ public class Weapon : MonoBehaviour {
         }
     }
 
-    private void UpdateWeaponData() 
+    protected virtual void UpdateWeaponData() 
     {
         defaultWeaponPosition = weaponData.defaultWeaponPosition;
         aimingWeaponPosition = weaponData.aimingWeaponPosition;
@@ -190,7 +195,7 @@ public class Weapon : MonoBehaviour {
         weaponAimFOVMultiplier = weaponData.weaponAimFOVMultiplier;
     }
 
-    private Vector3 BulletSpread() 
+    protected virtual Vector3 BulletSpread() 
     {
         Vector3 _bulletSpread = playerCamera.position + playerCamera.forward * 1000f;
 
@@ -205,7 +210,7 @@ public class Weapon : MonoBehaviour {
         return _bulletSpread;
     }
 
-    private void InstantiateBulletHole(Vector3 hitPoint, Vector3 hitNormal) 
+    protected virtual void InstantiateBulletHole(Vector3 hitPoint, Vector3 hitNormal) 
     {
         GameObject _bulletHole = PhotonNetwork.Instantiate(
             Path.Combine("PhotonPrefabs", "Misc", "WeaponEffects", "BulletHolePrefab"), 
@@ -214,7 +219,7 @@ public class Weapon : MonoBehaviour {
         );        
     }
 
-    private void InstantiateBulletImpact(Vector3 hitPoint, Vector3 hitNormal) 
+    protected virtual void InstantiateBulletImpact(Vector3 hitPoint, Vector3 hitNormal) 
     {
         GameObject _bulletImpact = PhotonNetwork.Instantiate(Path.Combine(
             "PhotonPrefabs", "Misc", "WeaponEffects", "BulletImpactPrefab"), 
@@ -246,6 +251,9 @@ public class Weapon : MonoBehaviour {
                     (_hitObject.name == "Head") ? weaponDamage * weaponHeadshotMultiplier : weaponDamage,
                     PhotonNetwork.LocalPlayer.ActorNumber
                 );
+                
+                var damageState = (_hitObject.name == "Head" ? 0 : 1);
+                weaponHUD.DisplayHitmarker((byte)damageState);
 
                 Debug.Log($"({nameof(Shoot)}){PhotonNetwork.LocalPlayer.NickName}: {PhotonNetwork.LocalPlayer.ActorNumber}");
             }
@@ -260,14 +268,14 @@ public class Weapon : MonoBehaviour {
     }
 
     [PunRPC]
-    void RPC_SpawnBulletEffects(Vector3 hitPoint, Vector3 hitNormal) 
+    protected virtual void RPC_SpawnBulletEffects(Vector3 hitPoint, Vector3 hitNormal) 
     {
         InstantiateBulletHole(hitPoint, hitNormal);
         InstantiateBulletImpact(hitPoint, hitNormal);
     }
 
     [PunRPC]
-    void RPC_SpawnTrail(Vector3 hitPoint, string hitObject)
+    protected virtual void RPC_SpawnTrail(Vector3 hitPoint, string hitObject)
     {
         if (!pv.IsMine) return;
 
@@ -281,7 +289,7 @@ public class Weapon : MonoBehaviour {
         StartCoroutine(SpawnTrail(_trail.GetComponent<TrailRenderer>(), (GameObject.Find(hitObject).GetComponent<Collider>() ? hitPoint : playerCamera.position + playerCamera.forward * 100f)));
     }
 
-    private void PlaySound(byte audioClip, int maxDistance, bool hasPriority)
+    protected virtual void PlaySound(byte audioClip, int maxDistance, bool hasPriority)
     {
         if (hasPriority)
             pv.RPC(nameof(RPC_PlaySoundPriority), RpcTarget.All, audioClip, maxDistance);
@@ -291,20 +299,20 @@ public class Weapon : MonoBehaviour {
     }
 
     [PunRPC]
-    void RPC_PlaySoundPriority(byte audioClip, int maxDistance)
+    protected virtual void RPC_PlaySoundPriority(byte audioClip, int maxDistance)
     {
         mainAudioSource.PlayOneShot(weaponData.weaponAudioClips[audioClip]);
         mainAudioSource.maxDistance = maxDistance;
     }
 
     [PunRPC]
-    void RPC_PlaySound(byte audioClip, int maxDistance)
+    protected virtual void RPC_PlaySound(byte audioClip, int maxDistance)
     {
         weaponAudioSource.PlayOneShot(weaponData.weaponAudioClips[audioClip]);
         weaponAudioSource.maxDistance = maxDistance;
     }
 
-    private void Aim() 
+    protected virtual void Aim() 
     {
         player.canSprint = !isAiming;
 
@@ -344,14 +352,14 @@ public class Weapon : MonoBehaviour {
         if(reserveAmmo <= 0) reserveAmmo = 0;
     }
 
-    private IEnumerator ShootingCooldown() 
+    protected virtual IEnumerator ShootingCooldown() 
     {
         isShooting = true;
         yield return new WaitForSeconds(1f / fireRate);
         isShooting = false;
     }
 
-    private IEnumerator BurstShootingCooldown()
+    protected virtual IEnumerator BurstShootingCooldown()
     {
         isShooting = true;
         
@@ -365,19 +373,20 @@ public class Weapon : MonoBehaviour {
         isShooting = false;
     }
 
-    private IEnumerator ReloadingCooldown() 
+    protected virtual IEnumerator ReloadingCooldown() 
     {
         PlaySound(2, weaponData.reloadAudioDistance, false);
 
         isReloading = true;
         canAim = false;
-        Reload();
+        isAiming = false;
         yield return new WaitForSeconds(1f / (reloadSpeed / 10));
+        Reload();
         isReloading = false;
         canAim = true;
     }
 
-    private IEnumerator SpawnTrail(TrailRenderer trail, Vector3 target) 
+    protected virtual IEnumerator SpawnTrail(TrailRenderer trail, Vector3 target) 
     {
         float time = 0;
         Vector3 startPosition = trail.transform.position;

@@ -118,15 +118,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 863ae27b1c973c048ab152aa7af71e7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponShootingSound: {fileID: 8300000, guid: de5a992ce1cd25147a5bf9ddc7444ecb, type: 3}
-  weaponReloadingSound: {fileID: 8300000, guid: 030b9696ef7c07b4b9dd739084d85f7a, type: 3}
-  weaponEquipSound: {fileID: 8300000, guid: 70b9f044257543042a632540d307f14a, type: 3}
-  weaponAimSound: {fileID: 8300000, guid: bc43c34456424c74c857b2e10f7a9edc, type: 3}
+  weaponAudioClips: []
   firingMode: 2
   isWeaponHeld: 1
   bulletSpawnPoint: {fileID: 6081977864433087435}
   weaponModel: {fileID: 2558068288071207257}
   playerCamera: {fileID: 0}
+  weaponCamera: {fileID: 0}
   player: {fileID: 0}
   weaponData: {fileID: 11400000, guid: 86e9f36ccef586b4bbb07676e1abdaaf, type: 2}
 --- !u!114 &3737453083093201307

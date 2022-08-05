@@ -2,11 +2,15 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
 using System.Collections;
+using Photon.Realtime;
 
 public class RoomManager : MonoBehaviourPunCallbacks
 {
     private GameObject playerManager;
-    
+    public string mainMenu = "menu_scene";
+
+    private int currentPlayerCount;
+    private string currentScene;
     public static RoomManager Instance;
     
     private void Awake() 
@@ -28,6 +32,8 @@ public class RoomManager : MonoBehaviourPunCallbacks
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.F2)) Disconnect();
+
+        if (GameManager.Instance != null) GameManager.Instance.playerCount = currentPlayerCount;
     }
 
     public override void OnEnable() 
@@ -46,15 +52,34 @@ public class RoomManager : MonoBehaviourPunCallbacks
     {
         if(scene.name == Launcher.Instance.selectedMap) {
             PhotonNetwork.AutomaticallySyncScene = true;
-            photonView.RPC(nameof(AddPlayer), RpcTarget.AllBufferedViaServer);
+            currentScene = scene.name;
+            GameManager.Instance.playerCount = currentPlayerCount;
         }
     }
 
-    [PunRPC]
-    private void AddPlayer()
+    public override void OnJoinedRoom()
     {
-        GameManager.Instance.playerCount++;
+        currentPlayerCount = PhotonNetwork.CurrentRoom.PlayerCount;
     }
+
+    public override void OnLeftRoom ()
+    {
+        base.OnLeftRoom();
+        SceneManager.LoadScene(mainMenu);
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+            Debug.LogFormat($"{newPlayer} has joined the game.");
+            currentPlayerCount++;
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {       
+        Debug.LogFormat($"{otherPlayer} has left the game.");
+        currentPlayerCount--;
+    }
+
 
     private void Disconnect()
     {
@@ -74,6 +99,12 @@ public class RoomManager : MonoBehaviourPunCallbacks
         SceneManager.LoadScene("menu_scene");
         Destroy(Instance);
 
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        base.OnDisconnected(cause);
+        Destroy(gameObject);
     }
 
 }

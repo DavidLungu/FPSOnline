@@ -46,12 +46,12 @@ public class Launcher : MonoBehaviourPunCallbacks
     [SerializeField] private Transform roomListContent;
     [SerializeField] private GameObject roomListPrefab;
     public RoomOptions roomOptions = new RoomOptions();
+    private List<RoomInfo> currentRoomList = new List<RoomInfo>();
 
 
     [Header("Map")]
     [SerializeField] MapManager mapManager;
     public string selectedMap { get; set; }
-
 
     [SerializeField] private TextMeshProUGUI errorText;
     [SerializeField] private GameObject startMatchButton;
@@ -119,7 +119,6 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     public void CreateRoom() 
     {
-        
         roomOptions.MaxPlayers = 8;
 
         PhotonNetwork.CreateRoom(
@@ -187,6 +186,8 @@ public class Launcher : MonoBehaviourPunCallbacks
             if(roomList[i].RemovedFromList) continue;
             Instantiate(roomListPrefab, roomListContent).GetComponent<RoomListItem>().CreateRoom(roomList[i]);    
         }
+
+        currentRoomList = roomList;
     }
 
     public void LeaveRoom() 
@@ -197,7 +198,7 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     public override void OnLeftRoom() 
     {
-        MenuManager.Instance.OpenMenu("MainMenu");
+        UpdateRoomList(currentRoomList);
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message) 
@@ -218,6 +219,7 @@ public class Launcher : MonoBehaviourPunCallbacks
         errorText.text = string.Format($"{returnCode}: {message}");
     }
 
+    [PunRPC]
     public void StartGame() 
     {
         MenuManager.Instance.OpenMenu("LoadingMatchMenu");

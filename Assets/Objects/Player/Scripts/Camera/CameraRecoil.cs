@@ -41,7 +41,7 @@ public class CameraRecoil : MonoBehaviour
 
         CalculateRecoil();
         
-        if(currentWeapon.IsShooting()) { RecoilFire(currentWeapon); }    
+        if(currentWeapon.isShooting) { RecoilFire(currentWeapon); }    
     }
 
     private void CalculateRecoil() {
@@ -52,12 +52,12 @@ public class CameraRecoil : MonoBehaviour
         aimFireRecoil = currentWeaponData.aimFireRecoil;
 
         targetRotation = Vector3.Lerp(targetRotation, Vector3.zero, recoilReturnSpeed * Time.deltaTime);
-        currentRotation = Vector3.Slerp(currentRotation, targetRotation, recoilTravelSpeed * Time.deltaTime);
+        currentRotation = Vector3.Lerp(currentRotation, targetRotation, recoilTravelSpeed * Time.deltaTime);
         transform.localRotation = Quaternion.Euler(currentRotation);
     }
 
     public void RecoilFire(Weapon _weapon) {
-        if (_weapon.IsAiming()) { 
+        if (_weapon.isAiming) { 
             targetRotation += new Vector3(
                 aimFireRecoil.x * 0.1f, 
                 Random.Range(-aimFireRecoil.y, aimFireRecoil.y) * 0.1f, 
