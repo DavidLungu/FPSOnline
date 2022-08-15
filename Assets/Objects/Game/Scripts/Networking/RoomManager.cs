@@ -9,6 +9,9 @@ public class RoomManager : MonoBehaviourPunCallbacks
     private GameObject playerManager;
     public string mainMenu = "menu_scene";
 
+    public string selectedMapName;
+    public string selectedGamemode;
+
     private int currentPlayerCount;
     private string currentScene;
     public static RoomManager Instance;

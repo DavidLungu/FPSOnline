@@ -28,10 +28,14 @@ public class CameraFOV : MonoBehaviour
         if (!pv.IsMine) { return; }
 
         currentWeapon = gameObject.GetComponentInChildren<WeaponManager>().GetCurrentWeapon();
-        playerAimFOVMultiplier = currentWeapon.GetWeaponData().playerAimFOVMultiplier;
-        weaponAimFOVMultiplier = currentWeapon.GetWeaponData().weaponAimFOVMultiplier;
 
-        AdjustCameraFOV();
+        if (currentWeapon != null) 
+        {
+            playerAimFOVMultiplier = currentWeapon.GetWeaponData().playerAimFOVMultiplier;
+            weaponAimFOVMultiplier = currentWeapon.GetWeaponData().weaponAimFOVMultiplier;
+
+            AdjustCameraFOV();
+        }
     }
 
     private void AdjustCameraFOV() 

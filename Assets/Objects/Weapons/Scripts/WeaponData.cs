@@ -5,6 +5,8 @@ public class WeaponData : ScriptableObject
 {    
     [Header("Gun Data")]
     public string weaponName = "";
+    public GameObject weaponModel;
+    public GameObject weaponPrefab;
 
     public Vector3 defaultWeaponPosition;
     public Vector3 aimingWeaponPosition;
@@ -20,6 +22,8 @@ public class WeaponData : ScriptableObject
     public float reloadSpeed;
     public float aimSpeed;
     public float bulletSpread;
+    public float weaponKickback;
+    public float weaponKickbackRotation;
 
     [Header("Recoil")]
     public Vector3 hipFireRecoil;

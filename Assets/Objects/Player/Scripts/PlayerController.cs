@@ -161,4 +161,16 @@ public class PlayerController : MonoBehaviour
 
         return false;
     }
+
+    private void OnTriggerStay(Collider other) 
+    {
+        if (!pv.IsMine) return;
+        
+        if (other.GetComponent<Interactable>() == null) return;
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            other.GetComponent<Interactable>().Interact(this.gameObject);
+        }
+    }
 }

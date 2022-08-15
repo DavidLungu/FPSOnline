@@ -32,7 +32,11 @@ public class CameraRecoil : MonoBehaviour
         if (!pv.IsMine) { return; }
 
         currentWeapon = weaponManager.GetCurrentWeapon();
-        currentWeaponData = currentWeapon.GetWeaponData();
+
+        if (currentWeapon != null) 
+        {
+            currentWeaponData = currentWeapon.GetWeaponData();
+        }
     }
 
     private void FixedUpdate() {

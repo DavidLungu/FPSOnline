@@ -1,10 +1,9 @@
 using System.Collections;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using Photon.Pun;
+using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
+using Photon.Pun;
 using TMPro;
-using Photon.Realtime;
 
 public enum GameMode
 {
@@ -30,8 +29,11 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     
     [Space]
-    public GameMode mode = GameMode.FFA;
+    public string mapName;
+    public string gamemodeName;
+    public GameMode gamemode = GameMode.FFA;
     public GameState state = GameState.Waiting;
+    public Weapon[] startingLoadout;
 
     [SerializeField] private GameObject uiWaitForPlayers;
 
@@ -42,12 +44,13 @@ public class GameManager : MonoBehaviourPunCallbacks
     private float previousTime;
     private float timeRemaining;
     
+    
     [Header("Misc")]
     [SerializeField] private GameObject mapSpectatorCamera;
     [SerializeField] private AudioSource audioSource;
     public GameObject playerManager { get; private set; }
 
-    private string mainMenu = RoomManager.Instance.mainMenu;
+    private string mainMenu;
 
     public static GameManager Instance;
     
@@ -67,6 +70,9 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void Start()
     {
+        mainMenu = RoomManager.Instance.mainMenu;
+        mapName = RoomManager.Instance.selectedMapName;
+        gamemodeName = RoomManager.Instance.selectedGamemode;
         timeRemaining = countdownTime;
     }
 
@@ -91,8 +97,9 @@ public class GameManager : MonoBehaviourPunCallbacks
             //audioSource.clip = countdownCompleteSound;
             
             if(timeRemaining <= 0) 
-            {
-                StartMatch();
+            {            
+                timeRemaining = 0;
+                if (PhotonNetwork.IsMasterClient) photonView.RPC(nameof(StartMatch), RpcTarget.AllBufferedViaServer);
             }
         }
 
@@ -106,6 +113,24 @@ public class GameManager : MonoBehaviourPunCallbacks
         timerText.text = (timeRemaining).ToString("00");
     }
 
+    public List<SpawnPoint> GetSpawnPoints() 
+    {
+        var _spawnPoints = FindObjectsOfType<SpawnPoint>();
+        List<SpawnPoint> availableSpawns = new List<SpawnPoint>();
+        
+        foreach (SpawnPoint _spawnPoint in _spawnPoints) 
+        {    
+            if(!_spawnPoint.isActive) {
+                availableSpawns.Remove(_spawnPoint);
+            } 
+
+            availableSpawns.Add(_spawnPoint);
+        }
+
+        return availableSpawns;
+    }
+
+    [PunRPC]
     private void StartMatch()
     {
         if (state == GameState.Playing) return;
@@ -116,8 +141,15 @@ public class GameManager : MonoBehaviourPunCallbacks
             playerManager = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "Player", "PlayerManager"), Vector3.zero, Quaternion.identity);
         else
             playerManager = Instantiate(Resources.Load<GameObject>(Path.Combine("PhotonPrefabs", "Player", "PlayerManager")), Vector3.zero, Quaternion.identity);
+
         mapSpectatorCamera.SetActive(false);
         state = GameState.Playing;
+    }
+
+    private IEnumerator MatchTimer(float matchTime) // !
+    {
+        yield return new WaitForSeconds(1f);
+
     }
 
     public void EndMatch()

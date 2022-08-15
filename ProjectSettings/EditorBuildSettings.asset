@@ -12,9 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/TestLevel/map_test.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
-    path: Assets/Scenes/Bastion/map_bastion.unity
+    path: Assets/Scenes/Bastion/map_bastion_s.unity
     guid: 93d05485176572e4eb80928d62c24679
-  - enabled: 0
-    path: Assets/Scenes/Bastion/map_bastion_r.unity
+  - enabled: 1
+    path: Assets/Scenes/Bastion/map_bastion_b.unity
     guid: d753aa6dfeabdfb4bb56688b1141ed5e
   m_configObjects: {}

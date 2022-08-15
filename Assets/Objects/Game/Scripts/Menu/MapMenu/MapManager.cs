@@ -59,6 +59,8 @@ public class MapManager : MonoBehaviour
 
         loadingMapIcon.texture = selectedMapImage.texture;
         loadingMapName.text = selectedMapName;
+
+        RoomManager.Instance.selectedMapName = selectedMapName;
     }
 
 }

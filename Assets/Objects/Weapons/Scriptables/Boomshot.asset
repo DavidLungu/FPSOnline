@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9bdd9224899b2b4383737a04c3c8ab1, type: 3}
+  m_Name: Boomshot
+  m_EditorClassIdentifier: 
+  weaponName: Boomshot
+  weaponModel: {fileID: 2473221482842298274, guid: b7b473419b4268446a8ede04432cf32e, type: 3}
+  weaponPrefab: {fileID: 7530762554871235875, guid: d76599b7c320c9e4c8616656f19163f5, type: 3}
+  defaultWeaponPosition: {x: 0.3, y: -0.21, z: 0.63}
+  aimingWeaponPosition: {x: 0, y: -0.19, z: 0.57}
+  weaponDamage: 150
+  weaponHeadshotMultiplier: 1.5
+  reserveAmmo: 15
+  clipAmmo: 5
+  fireRate: 0.5
+  reloadSpeed: 5
+  aimSpeed: 5
+  bulletSpread: 200
+  weaponKickback: 0
+  weaponKickbackRotation: 25
+  hipFireRecoil: {x: 0, y: 0, z: 0}
+  aimFireRecoil: {x: 0, y: 0, z: 0}
+  recoilTravelSpeed: 0
+  recoilReturnSpeed: 0
+  playerAimFOVMultiplier: 1
+  weaponAimFOVMultiplier: 0.1
+  scopeAimFOVMultiplier: 15
+  weaponSwayIntensity: 0.5
+  weaponSwaySmoothing: 8
+  bulletHolePrefab: {fileID: 2103346097670830839, guid: 50a2d4c7097e78047ae1f7313e32161f, type: 3}
+  bulletImpactPrefab: {fileID: 7954361027251996622, guid: a2403ac3f68d10449bc13c32a43b8674, type: 3}
+  bulletTrail: {fileID: 3128722835370874194, guid: 11d6a9eb0a392de4b9ad67683a2f3563, type: 3}
+  weaponAudioClips:
+  - {fileID: 8300000, guid: 9b29ab59cd7e7cc4ab92bb699ad34860, type: 3}
+  - {fileID: 8300000, guid: 7f8e523504587aa48a3fa2e4409a69e4, type: 3}
+  - {fileID: 8300000, guid: cb3e15158c1faba41826ba8194c43df1, type: 3}
+  - {fileID: 8300000, guid: f2bcf0081f6805c44aaa8658b453262e, type: 3}
+  shootAudioDistance: 150
+  equipAudioDistance: 20
+  reloadAudioDistance: 50
+  aimAudioDistance: 25

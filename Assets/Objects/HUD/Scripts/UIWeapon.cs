@@ -45,11 +45,14 @@ public class UIWeapon : MonoBehaviour
 
         UpdateVariables();
         
-        ammoCountText.text = currentWeapon.GetCurrentAmmo().ToString();
-        ammoReserveText.text = currentWeapon.GetReserveAmmo().ToString();
+        if (currentWeapon != null) 
+        {
+            ammoCountText.text = currentWeapon.GetCurrentAmmo().ToString();
+            ammoReserveText.text = currentWeapon.GetReserveAmmo().ToString();
 
-        UpdateSingleFireText();
-        UpdateTextStates();
+            UpdateSingleFireText();
+            UpdateTextStates();
+        }
     }
 
     private void UpdateVariables() 

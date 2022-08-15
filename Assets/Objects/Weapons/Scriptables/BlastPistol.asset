@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: BlastPistol
   m_EditorClassIdentifier: 
   weaponName: Blast Pistol
+  weaponModel: {fileID: 1627538671441707103, guid: c82598f52ad720149ae5d73e72c78239, type: 3}
+  weaponPrefab: {fileID: 123932045109939638, guid: 6b2a991806ce43d4ba66cd6fa2f601e9, type: 3}
   defaultWeaponPosition: {x: 0.3, y: -0.21, z: 0.63}
   aimingWeaponPosition: {x: 0, y: -0.12, z: 0.6}
   weaponDamage: 23
@@ -23,17 +25,20 @@ MonoBehaviour:
   reloadSpeed: 10
   aimSpeed: 20
   bulletSpread: 20
+  weaponKickback: 0.05
+  weaponKickbackRotation: 5
   hipFireRecoil: {x: -3, y: 0.75, z: 0}
   aimFireRecoil: {x: -9, y: 0.5, z: 0}
   recoilTravelSpeed: 6
   recoilReturnSpeed: 6
   playerAimFOVMultiplier: 0.85
   weaponAimFOVMultiplier: 0.5
+  scopeAimFOVMultiplier: 0
   weaponSwayIntensity: 2
   weaponSwaySmoothing: 8
   bulletHolePrefab: {fileID: 2103346097670830839, guid: 50a2d4c7097e78047ae1f7313e32161f, type: 3}
   bulletImpactPrefab: {fileID: 7954361027251996622, guid: a2403ac3f68d10449bc13c32a43b8674, type: 3}
-  bulletTrail: {fileID: 6670010285891972953, guid: 11d6a9eb0a392de4b9ad67683a2f3563, type: 3}
+  bulletTrail: {fileID: 3128722835370874194, guid: 11d6a9eb0a392de4b9ad67683a2f3563, type: 3}
   weaponAudioClips:
   - {fileID: 8300000, guid: dca774a812241e244b7bdb8c31e7f79a, type: 3}
   - {fileID: 8300000, guid: 1e36c71ec12dbf94f8da486880ac6f44, type: 3}

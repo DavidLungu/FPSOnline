@@ -6,6 +6,8 @@ public class Sniper : Weapon
 {
     [SerializeField] private Camera scopeCamera;
     [SerializeField] private Camera mainViewCamera;
+    [SerializeField] private Camera viewModelCamera;
+
     [SerializeField] private float scopeAimFOVMultiplier;
     [SerializeField] GameObject scopeTexture;
     [SerializeField] private Transform defaultBulletSpawn, aimBulletSpawn;
@@ -22,6 +24,7 @@ public class Sniper : Weapon
         base.Start();
 
         this.mainViewCamera = transform.root.Find("Cameras").GetChild(0).GetChild(0).Find("MainViewCam").GetComponent<Camera>();    
+        this.viewModelCamera = transform.root.Find("Cameras").GetChild(0).GetChild(0).Find("ViewModelCam").GetComponent<Camera>();   
     }
 
     protected override void Update()
@@ -34,6 +37,15 @@ public class Sniper : Weapon
         scopeCamera.fieldOfView = weaponData.scopeAimFOVMultiplier;
 
         ToggleScope();
+    }
+
+    protected override void Shoot()
+    {
+        base.Shoot();
+        
+        // if (isAiming) {
+        //    animator.SetTrigger("isShooting");
+        // }
     }
 
     protected override void Aim()
@@ -49,7 +61,7 @@ public class Sniper : Weapon
             _target = defaultWeaponPosition;
         }
 
-        if (Input.GetMouseButtonDown(1)) 
+        if (Input.GetMouseButtonDown(1) && canAim) 
         {
             PlaySound(3, weaponData.aimAudioDistance, false);
         } 
@@ -62,7 +74,12 @@ public class Sniper : Weapon
     }
 
     private void ToggleScope()
-    {
+    {        
+        if (viewModelCamera.fieldOfView <= 7f)
+        {
+            this.mainViewCamera.enabled = false;
+        }
+
 
         if (isAiming) {
             bulletSpawnPoint.position = new Vector3(aimBulletSpawn.position.x, aimBulletSpawn.position.y - 0.1f, aimBulletSpawn.position.z);
@@ -70,10 +87,6 @@ public class Sniper : Weapon
             scopeCamera.gameObject.SetActive(true);
             scopeTexture.SetActive(true);
 
-
-            if (isShooting) {
-                animator.Play($"{weaponData.weaponName}_Shoot");
-            }
         }    
         else {
             this.mainViewCamera.enabled = true;
@@ -83,11 +96,5 @@ public class Sniper : Weapon
 
             bulletSpawnPoint.position = defaultBulletSpawn.position;
         }
-
-        if (mainViewCamera.fieldOfView <= 6f)
-        {
-            this.mainViewCamera.enabled = false;
-        }
-
     }
 }

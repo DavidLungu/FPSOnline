@@ -16,6 +16,9 @@ public class UILeaderboard : MonoBehaviour
 
     public void Leaderboard(string mapName, string gamemodeName, List<PlayerInfo> playerInfo)
     {
+        if (GameManager.Instance.gamemode == GameMode.FFA) gamemodeName = "FFA";
+        if (GameManager.Instance.gamemode == GameMode.TDM) gamemodeName = "TDM";
+
         for (int i = 2; i < playerCardHolder.childCount; i++)
         {
             Destroy(playerCardHolder.GetChild(i).gameObject);
@@ -37,7 +40,7 @@ public class UILeaderboard : MonoBehaviour
             Color32 cardColour = newPlayerCard.GetComponent<RawImage>().color;
 
             // if (player.playerActor == PhotonNetwork.LocalPlayer.ActorNumber) new Color32((byte)(cardColour.r - 80), (byte)(cardColour.g - 18), (byte)(cardColour.b - 18), cardColour.a);
-            
+                
             if (_alternateColours) cardColour = new Color32(cardColour.r, cardColour.g, cardColour.b, 180);
             _alternateColours = !_alternateColours;
             
@@ -62,7 +65,7 @@ public class UILeaderboard : MonoBehaviour
             PlayerInfo selection = playerInfo[0];
             foreach (PlayerInfo info in playerInfo)
             {
-                if (sortedPlayerInfo.Contains(info)) continue;
+                if (sortedPlayerInfo.Contains(info) || info.playerActor == PhotonNetwork.LocalPlayer.ActorNumber) continue;
 
                 if (info.kills > highest)
                 {

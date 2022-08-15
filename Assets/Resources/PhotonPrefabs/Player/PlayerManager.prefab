@@ -67,6 +67,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentState: 0
-  spawnPoints: []
   respawnTime: 5
   myIndex: 0

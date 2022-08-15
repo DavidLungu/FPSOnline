@@ -145,7 +145,7 @@ public class Launcher : MonoBehaviourPunCallbacks
     {
         roomName.text = PhotonNetwork.CurrentRoom.Name;
 
-        mapManager.SelectMap("map_bastion");
+        mapManager.SelectMap("map_bastion_s");
         MenuManager.Instance.OpenMenu("RoomMenu");
 
         Player[] players = PhotonNetwork.PlayerList;

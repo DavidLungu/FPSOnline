@@ -52,6 +52,11 @@ MonoBehaviour:
   - RPC_InitializeVariables
   - RPC_PlaySoundPriority
   - StartGame
+  - RPC_PickUp
+  - GenerateNewItem
+  - DisablePickup
+  - Equip
+  - StartMatch
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

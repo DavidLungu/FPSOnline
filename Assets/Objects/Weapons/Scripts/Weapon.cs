@@ -3,7 +3,7 @@ using Photon.Pun;
 using System.Collections;
 using System.IO;
 
-public class Weapon : MonoBehaviour {
+public class Weapon : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback  {
     private float weaponDamage;
     private float weaponHeadshotMultiplier;
 
@@ -17,7 +17,6 @@ public class Weapon : MonoBehaviour {
     private float playerAimFOVMultiplier;
     private float weaponAimFOVMultiplier;
 
-    [SerializeField] private AudioClip[] weaponAudioClips;
     protected Vector3 defaultWeaponPosition { get; private set; }
     protected Vector3 aimingWeaponPosition { get; private set; }
 
@@ -32,6 +31,7 @@ public class Weapon : MonoBehaviour {
     private GameObject bulletHolePrefab;
     private GameObject bulletImpactPrefab;
     private TrailRenderer bulletTrail;
+    [SerializeField] private ParticleSystem muzzleFlash;
     [SerializeField] protected Transform bulletSpawnPoint;
     [SerializeField] private GameObject weaponModel;
     [SerializeField] public Transform playerCamera, weaponCamera;
@@ -39,11 +39,15 @@ public class Weapon : MonoBehaviour {
     [SerializeField] protected PlayerController player;
     [SerializeField] protected WeaponData weaponData;
     private CameraRecoil cameraRecoilScript;
-    protected PhotonView pv;
+    [SerializeField] public PhotonView pv;
     
-    public float GetCurrentAmmo() => currentAmmo;
-    public float GetClipAmmo() => clipAmmo;
-    public float GetReserveAmmo() => reserveAmmo;
+    public int GetCurrentAmmo() => currentAmmo;
+    public int GetClipAmmo() => clipAmmo;
+    public int GetReserveAmmo() => reserveAmmo;
+    public void MaxAmmo() 
+    {
+        reserveAmmo = weaponData.reserveAmmo;
+    } 
 
     public void ToggleShoot() { canShoot = true; }
     public void ToggleAim() { canAim = true; }
@@ -72,6 +76,33 @@ public class Weapon : MonoBehaviour {
 
     protected virtual void Start() 
     {
+        InitializeWeapon();
+    }
+
+    public virtual void OnPhotonInstantiate(PhotonMessageInfo info)
+    {
+        object[] instantiationData = info.photonView.InstantiationData;
+        transform.SetParent(PhotonView.Find((int)instantiationData[0]).transform);
+        Debug.Log((string)instantiationData[1]);
+
+        weaponModel.SetActive(true);
+    }
+
+    protected void OnEnable() 
+    {
+        if(pv == null || playerCamera == null) return;
+        if(!pv.IsMine) return;
+
+        playerCamera.GetComponent<Camera>().enabled = true;
+
+        canShoot = false;
+        isAiming = false;
+
+        PlaySound(0, weaponData.equipAudioDistance, false);
+    }
+
+    public void InitializeWeapon()
+    {
         if(!pv.IsMine) { return; }
         
         InitializeWeaponData();
@@ -79,35 +110,22 @@ public class Weapon : MonoBehaviour {
         player = transform.root.GetComponent<PlayerController>();
         playerManager = transform.root.GetComponent<PlayerHealth>().playerManager;
         weaponHUD = playerManager.playerHUD.GetComponent<UIWeapon>();
-        pv.RPC(nameof(RPC_InitializeVariables), RpcTarget.All);
 
-        // TEMP FIX, FIND OUT WHY IT IS NOT WORKING //
-        // playerCamera = player.transform.Find("Cameras/MainViewCam").transform;
+        playerCamera = transform.parent.parent.parent.Find("MainViewCam").transform;
+        weaponCamera = transform.parent.parent.parent.Find("ViewModelCam").transform;
         cameraRecoilScript = playerCamera.parent.GetComponent<CameraRecoil>();
         bulletSpawnPoint = transform.Find("BulletSpawnPoint").transform;
-
+        pv.RPC(nameof(RPC_InitializeVariables), RpcTarget.All);
 
         PlaySound(0, weaponData.equipAudioDistance, false);
 
         currentAmmo = clipAmmo;
     }
 
-    protected void OnEnable() 
-    {
-        if(pv == null) return;
-        if(!pv.IsMine) return;
-
-        canShoot = false;
-        isAiming = false;
-
-        PlaySound(0, weaponData.equipAudioDistance, false);
-        transform.localPosition = weaponData.defaultWeaponPosition;
-    }
-
     protected virtual void Update() 
     {
         if(!pv.IsMine) { return; }
-
+        
         UpdateWeaponData();
 
         if (!canShoot) { return; }
@@ -120,6 +138,10 @@ public class Weapon : MonoBehaviour {
     protected void ReadInputs() 
     {
         if (Input.GetKeyDown(KeyCode.R) && !isReloading && currentAmmo < clipAmmo && reserveAmmo > 0) 
+        {
+            StartCoroutine(ReloadingCooldown());
+        }
+        else if (Input.GetMouseButtonDown(0) && !isReloading && currentAmmo <= 0 && reserveAmmo > 0)
         {
             StartCoroutine(ReloadingCooldown());
         }
@@ -238,12 +260,14 @@ public class Weapon : MonoBehaviour {
         currentAmmo--;
 
         PlaySound(1, weaponData.shootAudioDistance, true);
-
+        muzzleFlash.Play();
         
-        if (Physics.Raycast(playerCamera.position, (isAiming ? playerCamera.forward : BulletSpread()), out var hitInfo, 1000f)) {
+        if (Physics.Raycast(playerCamera.position, (isAiming ? playerCamera.forward : BulletSpread()), out RaycastHit hitInfo, 1000f)) {
             
             _hitObject = hitInfo.collider.transform.gameObject;
             
+            pv.RPC(nameof(RPC_SpawnTrail), RpcTarget.All, hitInfo.point, hitInfo.normal, false);
+
             if(_hitObject.CompareTag("Player")) 
             {
                 _hitObject.GetComponentInParent<IDamageable>()?.TakeDamage
@@ -254,31 +278,24 @@ public class Weapon : MonoBehaviour {
                 
                 var damageState = (_hitObject.name == "Head" ? 0 : 1);
                 weaponHUD.DisplayHitmarker((byte)damageState);
-
-                Debug.Log($"({nameof(Shoot)}){PhotonNetwork.LocalPlayer.NickName}: {PhotonNetwork.LocalPlayer.ActorNumber}");
-            }
-            else {
+            } else {
                 pv.RPC(nameof(RPC_SpawnBulletEffects), RpcTarget.All, hitInfo.point, hitInfo.normal);
             }
         }
-
-        pv.RPC(nameof(RPC_SpawnTrail), RpcTarget.All, hitInfo.point, (hitInfo.collider.gameObject ? hitInfo.collider.gameObject.name : null));
+        else {
+            pv.RPC(nameof(RPC_SpawnTrail), RpcTarget.All, playerCamera.forward * 1000f, Vector3.zero, true);
+        }
         
         // KICKBACK
+        transform.Rotate(-(isAiming ? 0 : weaponData.weaponKickbackRotation), 0, 0);
+        transform.position -= transform.forward * weaponData.weaponKickback;
     }
 
     [PunRPC]
-    protected virtual void RPC_SpawnBulletEffects(Vector3 hitPoint, Vector3 hitNormal) 
-    {
-        InstantiateBulletHole(hitPoint, hitNormal);
-        InstantiateBulletImpact(hitPoint, hitNormal);
-    }
-
-    [PunRPC]
-    protected virtual void RPC_SpawnTrail(Vector3 hitPoint, string hitObject)
+    protected virtual void RPC_SpawnTrail(Vector3 hitPoint, Vector3 hitNormal, bool madeImpact)
     {
         if (!pv.IsMine) return;
-
+        
         GameObject _trail = PhotonNetwork.Instantiate(
             Path.Combine("PhotonPrefabs", "Misc", "WeaponEffects", "BulletTrail"), 
             bulletSpawnPoint.position, 
@@ -286,7 +303,14 @@ public class Weapon : MonoBehaviour {
         );
 
         // TEMPORARY SOLUTION BECAUSE FINDING EACH OBJECT COLLIDER EVERY TIME WE SHOOT IS REALLY BAD FOR PERFORMANCE
-        StartCoroutine(SpawnTrail(_trail.GetComponent<TrailRenderer>(), (GameObject.Find(hitObject).GetComponent<Collider>() ? hitPoint : playerCamera.position + playerCamera.forward * 100f)));
+        StartCoroutine(SpawnTrail(_trail.GetComponent<TrailRenderer>(), hitPoint, hitNormal, madeImpact));
+    }
+
+    [PunRPC]
+    protected virtual void RPC_SpawnBulletEffects(Vector3 hitPoint, Vector3 hitNormal) 
+    {
+        InstantiateBulletHole(hitPoint, hitNormal);
+        InstantiateBulletImpact(hitPoint, hitNormal);
     }
 
     protected virtual void PlaySound(byte audioClip, int maxDistance, bool hasPriority)
@@ -301,6 +325,8 @@ public class Weapon : MonoBehaviour {
     [PunRPC]
     protected virtual void RPC_PlaySoundPriority(byte audioClip, int maxDistance)
     {
+        if (weaponAudioSource == null) return;
+
         mainAudioSource.PlayOneShot(weaponData.weaponAudioClips[audioClip]);
         mainAudioSource.maxDistance = maxDistance;
     }
@@ -308,7 +334,10 @@ public class Weapon : MonoBehaviour {
     [PunRPC]
     protected virtual void RPC_PlaySound(byte audioClip, int maxDistance)
     {
-        weaponAudioSource.PlayOneShot(weaponData.weaponAudioClips[audioClip]);
+        if (weaponAudioSource == null) return;
+
+        weaponAudioSource.clip = weaponData.weaponAudioClips[audioClip];
+        weaponAudioSource.Play();
         weaponAudioSource.maxDistance = maxDistance;
     }
 
@@ -327,7 +356,7 @@ public class Weapon : MonoBehaviour {
             isAiming = false;
         }
 
-        if (Input.GetMouseButtonDown(1)) 
+        if (Input.GetMouseButtonDown(1) && canAim) 
         {
             PlaySound(3, weaponData.aimAudioDistance, false);
         } 
@@ -386,23 +415,20 @@ public class Weapon : MonoBehaviour {
         canAim = true;
     }
 
-    protected virtual IEnumerator SpawnTrail(TrailRenderer trail, Vector3 target) 
+    protected virtual IEnumerator SpawnTrail(TrailRenderer trail, Vector3 hitPoint, Vector3 hitNormal, bool madeImpact) 
     {
         float time = 0;
         Vector3 startPosition = trail.transform.position;
 
         while (time < 1) {
-            trail.transform.position = Vector3.Lerp(startPosition, target, time);
+            trail.transform.position = Vector3.Lerp(startPosition, hitPoint, 100 * time);
             time += Time.deltaTime / trail.time;
 
             yield return null;
         }
 
-        trail.transform.position = target;
-
-        yield return new WaitForSeconds(trail.time);
+        trail.transform.position = hitPoint;
 
         PhotonNetwork.Destroy(trail.gameObject);
-        // SPAWN IMPACT 
     }
 }
