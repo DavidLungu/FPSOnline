@@ -35,6 +35,10 @@ public class WeaponData : ScriptableObject
     public float playerAimFOVMultiplier;
     public float weaponAimFOVMultiplier;
     public float scopeAimFOVMultiplier;
+    public float scopeAimZoomFOVMultiplier;
+
+    [Header("Sensitivity Multipliers")]
+    [Range (0f, 1f)] public float aimSensitivityMultiplier;
 
    [Header("Sway")]
     public float weaponSwayIntensity;

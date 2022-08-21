@@ -88,7 +88,7 @@ public class Weapon : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback  {
         weaponModel.SetActive(true);
     }
 
-    protected void OnEnable() 
+    public override void OnEnable() 
     {
         if(pv == null || playerCamera == null) return;
         if(!pv.IsMine) return;
@@ -137,11 +137,11 @@ public class Weapon : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback  {
 
     protected void ReadInputs() 
     {
-        if (Input.GetKeyDown(KeyCode.R) && !isReloading && currentAmmo < clipAmmo && reserveAmmo > 0) 
+        if (Input.GetButtonDown(InputManager.RELOAD) && !isReloading && currentAmmo < clipAmmo && reserveAmmo > 0) 
         {
             StartCoroutine(ReloadingCooldown());
         }
-        else if (Input.GetMouseButtonDown(0) && !isReloading && currentAmmo <= 0 && reserveAmmo > 0)
+        else if (Input.GetButtonDown(InputManager.SHOOT) && !isReloading && currentAmmo <= 0 && reserveAmmo > 0)
         {
             StartCoroutine(ReloadingCooldown());
         }
@@ -150,7 +150,7 @@ public class Weapon : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback  {
         {
             if (firingMode == (int)FireMode.SEMI_FIRE) 
             {
-                if (Input.GetMouseButtonDown(0)) 
+                if (Input.GetButtonDown(InputManager.SHOOT)) 
                 {
                     Shoot();
                     StartCoroutine(currentAmmo <= 0 ? ReloadingCooldown() : ShootingCooldown());
@@ -158,7 +158,7 @@ public class Weapon : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback  {
             }
             else if (firingMode == (int)FireMode.AUTO_FIRE) 
             {
-                if (Input.GetMouseButton(0)) 
+                if (Input.GetButton(InputManager.SHOOT)) 
                 {
                     Shoot();
                     StartCoroutine(currentAmmo <= 0 ? ReloadingCooldown() : ShootingCooldown());
@@ -166,7 +166,7 @@ public class Weapon : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback  {
             }
             else if (firingMode == (int)FireMode.BURST_FIRE) 
             {
-                if (Input.GetMouseButtonDown(0)) 
+                if (Input.GetButtonDown(InputManager.SHOOT)) 
                 {
                     StartCoroutine(currentAmmo <= 0 ? ReloadingCooldown() : BurstShootingCooldown());
                 }
@@ -347,7 +347,7 @@ public class Weapon : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback  {
 
         Vector3 _target = defaultWeaponPosition;
 
-        if(Input.GetMouseButton(1) && canAim) {
+        if(Input.GetButton(InputManager.AIM) || Input.GetAxis(InputManager.AIM) > 0  && canAim) {
             _target = aimingWeaponPosition;
             isAiming = true;
         } 
@@ -356,7 +356,7 @@ public class Weapon : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback  {
             isAiming = false;
         }
 
-        if (Input.GetMouseButtonDown(1) && canAim) 
+        if (Input.GetButtonDown(InputManager.AIM) && canAim) 
         {
             PlaySound(3, weaponData.aimAudioDistance, false);
         } 

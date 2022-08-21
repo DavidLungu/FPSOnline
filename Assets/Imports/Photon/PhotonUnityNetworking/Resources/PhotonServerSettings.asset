@@ -57,6 +57,9 @@ MonoBehaviour:
   - DisablePickup
   - Equip
   - StartMatch
+  - EndCountdown
+  - StartCountdown
+  - ClickEvent
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

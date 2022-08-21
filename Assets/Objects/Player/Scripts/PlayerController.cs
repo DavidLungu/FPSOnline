@@ -1,7 +1,7 @@
 using UnityEngine;
 using Photon.Pun;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IPunInstantiateMagicCallback 
 {
     [Header("Player Movement")]
     [SerializeField] private float defaultMoveSpeed;
@@ -36,7 +36,17 @@ public class PlayerController : MonoBehaviour
     private Transform groundDetectTransform;
     private Rigidbody playerRigid;
 
+    public UIPlayer playerHUD { get; private set; }
+    private PlayerManager playerManager;
+
     private PhotonView pv;
+
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
+    {
+        object[] data = info.photonView.InstantiationData;
+
+        playerManager = PhotonNetwork.GetPhotonView((int)data[0]).GetComponent<PlayerManager>();
+    }
 
     private void Awake() 
     {
@@ -48,6 +58,7 @@ public class PlayerController : MonoBehaviour
         if(!pv.IsMine) { return; }
 
         playerRigid = GetComponent<Rigidbody>();
+        playerHUD = playerManager.playerHUD.GetComponent<UIPlayer>();
         
         orientationTransform = transform.root.Find("PlayerOrientation").transform;
         groundDetectTransform = transform.root.Find("PlayerModel/GroundDetect").transform;
@@ -87,12 +98,12 @@ public class PlayerController : MonoBehaviour
     {
         inputDirection = orientationTransform.forward * verticalMovement + orientationTransform.right * horizontalMovement;
 
-        if (Input.GetButton("Sprint") && verticalMovement > 0)
+        if (Input.GetButton(InputManager.SPRINT) && verticalMovement > 0)
             isSprinting = true;
-        else if (Input.GetButtonUp("Sprint") || horizontalMovement != 0 || verticalMovement <= 0)
+        else if (Input.GetButtonUp(InputManager.SPRINT) || horizontalMovement != 0 || verticalMovement <= 0)
             isSprinting = false;
 
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown(InputManager.JUMP))
             AddJumpForce();
     }
 
@@ -160,17 +171,5 @@ public class PlayerController : MonoBehaviour
         }
 
         return false;
-    }
-
-    private void OnTriggerStay(Collider other) 
-    {
-        if (!pv.IsMine) return;
-        
-        if (other.GetComponent<Interactable>() == null) return;
-
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            other.GetComponent<Interactable>().Interact(this.gameObject);
-        }
     }
 }

@@ -465,9 +465,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2910574879729995539}
+  - component: {fileID: 2283169734924003963}
   - component: {fileID: 5307913652757370840}
   - component: {fileID: 9082801679677732090}
   - component: {fileID: 2910574879729995538}
+  - component: {fileID: 195037008952341342}
   m_Layer: 0
   m_Name: CameraRot
   m_TagString: Untagged
@@ -490,6 +492,19 @@ Transform:
   m_Father: {fileID: 6149600040178956214}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &2283169734924003963
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2910574879729995540}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0.5}
 --- !u!114 &5307913652757370840
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -541,15 +556,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e5984384eff97445b38da73499fa807, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensitivity: 5
-  sensitivityMultiplier: 0.2
+  sensitivity: 49.97
+  defaultSensitivityMultiplier: 0.2
   orientation: {fileID: 2910574880332837016}
   playerModel: {fileID: 2910574879590550223}
-  weaponManager: {fileID: 2910574879525937300}
+  weaponManager: {fileID: 2910574879525937299}
   cameraRot: {fileID: 2910574879729995539}
   mainViewCam: {fileID: 376552802160657850}
   viewModelCam: {fileID: 2910574879476586973}
   spectatorCam: {fileID: 8470808937957340060}
+--- !u!114 &195037008952341342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2910574879729995540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c34860b3213aa74481ccf73e91c030b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2910574880024564888
 GameObject:
   m_ObjectHideFlags: 0
@@ -564,7 +591,6 @@ GameObject:
   - component: {fileID: 2910574880024564869}
   - component: {fileID: 2910574880024564867}
   - component: {fileID: 2277464617814441030}
-  - component: {fileID: 4350882853218861999}
   m_Layer: 7
   m_Name: PlayerController
   m_TagString: Player
@@ -665,7 +691,7 @@ MonoBehaviour:
   airDrag: 2.5
   groundLayerMask:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 136
   groundDetectRadius: 0.4
   maxSlopeAngle: 45
   slopeSpeedModifier: 20
@@ -684,19 +710,6 @@ MonoBehaviour:
   maxPlayerHealth: 200
   healthRegenCooldown: 5
   healthRegenRate: 2
---- !u!65 &4350882853218861999
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2910574880024564888}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 5, y: 3, z: 5}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &2910574880332837017
 GameObject:
   m_ObjectHideFlags: 0

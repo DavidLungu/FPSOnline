@@ -30,20 +30,23 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public GameObject playerHUD { get; private set; }
     private UIWeapon uiWeapon;
-    private UIPlayerHealth uiHealth;
+    private UIPlayer uiPlayer;
 
     private UILeaderboard leaderboard;
     private TMP_Text uiMatchWinner;
+    private int myObjective, enemyObjective;
     public GameObject uiEndMatch { get; private set; }
     public GameState currentState;
     private GameMode currentMode;
+    private GameType currentGameType;
     private Weapon[] startingLoadout;
 
     public ProfileData playerProfile { get; set; }
     private string playerUsername;
 
-    private List<SpawnPoint> spawnPoints = new List<SpawnPoint>();
+    private Coroutine timerCoroutine;
     [SerializeField] private float respawnTime;
+    private List<SpawnPoint> spawnPoints = new List<SpawnPoint>();
     private string otherPlayerName;
 
     public List<PlayerInfo> playerInfo = new List<PlayerInfo>();
@@ -57,7 +60,8 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         NewPlayer,
         UpdatePlayers,
-        ChangeStat
+        ChangeStat,
+        RefreshTimer
     }
 
     private void Awake() 
@@ -71,14 +75,16 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         if(!pv.IsMine) return;
 
         ValidateConnection();   
-        pv.RPC("SyncProfile", RpcTarget.All, Launcher.Instance.myProfile.username, Launcher.Instance.myProfile.level, Launcher.Instance.myProfile.xp);
+
+        spawnPoints = GameManager.Instance.GetSpawnPoints();
 
         currentState = GameState.Playing;
-        currentMode = GameManager.Instance.gamemode;
+        currentMode = GameManager.Instance.gameMode;
+        currentGameType = GameManager.Instance.gameType;
         startingLoadout = GameManager.Instance.startingLoadout;
 
         NewPlayerSend(Launcher.Instance.myProfile);
-        
+        InitializeTimer();
         SpawnPlayer();
     }
 
@@ -102,6 +108,8 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private void Update()
     {
         if(!pv.IsMine) return;
+
+        UpdateVariables();
         
         if (currentState == GameState.Ending) 
         { 
@@ -109,13 +117,22 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
             return; 
         }
     if (leaderboard != null && leaderboard.leaderboardObject != null)
-        if (Input.GetKey(KeyCode.Tab)) {
+        if (Input.GetButton(InputManager.SCOREBOARD)) {
              CreateLeaderboard();
         } 
         else {
             if (leaderboard.leaderboardObject.activeSelf) 
                 leaderboard.leaderboardObject.SetActive(false);
         } 
+    }
+
+    private void UpdateVariables()
+    {
+        if (uiPlayer != null)
+        {
+            uiPlayer.myObjective.text = myObjective.ToString();
+            uiPlayer.enemyObjective.text = enemyObjective.ToString();
+        }
     }
 
     private void TrySync()
@@ -163,6 +180,7 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         weaponManager.photonView.RPC(nameof(weaponManager.Equip), RpcTarget.All, 0);
     
         CreatePlayerHUD();
+        RefreshTimerSend();
     }
 
     private void ScoreCheck()
@@ -171,23 +189,29 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         string winner = "Player#0000";
         int objectiveCount = 0;
 
+        leaderboard.SortPlayers(playerInfo);
 
         foreach (PlayerInfo _playerInfo in playerInfo)
         {
             winner = _playerInfo.profile.username;
 
-            if (currentMode == GameMode.FFA)
+            if (currentGameType == GameType.Elimination)
             {
                 objectiveCount = _playerInfo.kills;
+                if (_playerInfo.playerActor == PhotonNetwork.LocalPlayer.ActorNumber) {
+                    myObjective = _playerInfo.kills;
+                }
 
-                if (winner == PhotonNetwork.LocalPlayer.NickName) {
-                    uiMatchWinner.text = string.Format($"<color=yellow><b>You</b></color> Won!");
-                    GameManager.Instance.isWinner = true;
-                }
-                else {
-                    uiMatchWinner.text = string.Format($"<color=red><b>You</b></color> Lose");
-                    GameManager.Instance.isWinner = false;
-                }
+                enemyObjective = leaderboard.enemyObjective;
+            }
+
+            if (winner == PhotonNetwork.LocalPlayer.NickName) {
+                uiMatchWinner.text = string.Format($"<color=yellow><b>You</b></color> Won!");
+                GameManager.Instance.isWinner = true;
+            }
+            else {
+                uiMatchWinner.text = string.Format($"<color=red><b>You</b></color> Lose");
+                GameManager.Instance.isWinner = false;
             }
 
             matchWon = GameManager.Instance.CheckWin(objectiveCount);
@@ -208,8 +232,13 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         currentState = GameState.Ending;
         
+        if (timerCoroutine != null) StopCoroutine(timerCoroutine);
+
+        GameManager.Instance.remainingMatchTime = 0;
+        RefreshTimerUI();
+
         uiWeapon.DisableHUD();
-        uiHealth.DisableHUD();
+        uiPlayer.DisableHUD();
 
         CreateLeaderboard();
         GameManager.Instance.EndMatch();
@@ -227,7 +256,7 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         InitializeUI();
 
         uiWeapon.weaponManager = playerController.GetComponentInChildren<WeaponManager>();
-        uiHealth.playerHealthScript = playerController.GetComponent<PlayerHealth>();
+        uiPlayer.playerHealthScript = playerController.GetComponent<PlayerHealth>();
         uiEndMatch = playerHUD.transform.Find("EndMatch").gameObject;
         uiMatchWinner = uiEndMatch.transform.Find("Winner").GetComponent<TMP_Text>();
 
@@ -237,7 +266,44 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private void InitializeUI()
     {
         uiWeapon = playerHUD.GetComponent<UIWeapon>();
-        uiHealth = playerHUD.GetComponent<UIPlayerHealth>();
+        uiPlayer = playerHUD.GetComponent<UIPlayer>();
+    }
+
+    private void InitializeTimer()
+    {
+        GameManager.Instance.remainingMatchTime = GameManager.Instance.matchLength;
+        RefreshTimerUI();
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            timerCoroutine = StartCoroutine(TimerCoroutine());
+        }
+    }
+
+    private void RefreshTimerUI()
+    {
+        if (uiPlayer == null) return;
+
+        string _minutes = (GameManager.Instance.remainingMatchTime / 60).ToString();
+        string _seconds = (GameManager.Instance.remainingMatchTime % 60).ToString("00");
+        uiPlayer.RefreshTimer($"{_minutes}:{_seconds}");
+    }
+
+    private IEnumerator TimerCoroutine()
+    {
+        yield return new WaitForSeconds(1f);
+
+        GameManager.Instance.remainingMatchTime -= 1;
+
+        if (GameManager.Instance.remainingMatchTime <= 0)
+        {
+            timerCoroutine = null;
+            UpdatePlayersSend((int)GameState.Ending, playerInfo);
+        }
+        else {
+            RefreshTimerSend();
+            timerCoroutine = StartCoroutine(TimerCoroutine());
+        }
     }
 
     public void CreateLeaderboard()
@@ -255,7 +321,6 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
             PhotonNetwork.Destroy(playerHUD);
         }
 
-        spawnPoints = GameManager.Instance.GetSpawnPoints();
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count-1)].transform;
 
         playerController = PhotonNetwork.Instantiate
@@ -271,7 +336,7 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public void DisplayKill(int otherActor)
     {   
         Debug.Log($"({nameof(DisplayKill)}) Other player actor: " + otherActor);
-        playerHUD.GetComponent<UIPlayerHealth>().DisplayKill(PhotonNetwork.CurrentRoom.GetPlayer(otherActor).NickName);
+        playerHUD.GetComponent<UIPlayer>().DisplayKill(PhotonNetwork.CurrentRoom.GetPlayer(otherActor).NickName);
         playerHUD.GetComponent<UIWeapon>().DisplayHitmarker(2);
     }
 
@@ -282,21 +347,14 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         StartCoroutine(RespawnCountdown());
     }
 
-    public void SpectatorCamera(GameObject spectatorCam) // TEMPORARY UNTIL DISCOVER SOLUTION 
-    {
-        spectatorCam.transform.SetParent(null);
-        spectatorCam.GetComponent<Camera>().enabled = true;
-        spectatorCam.GetComponent<AudioListener>().enabled = true;
-    }
-
     private IEnumerator RespawnCountdown() 
     {
         playerHUD.GetComponent<UIWeapon>().weaponManager = null;
-        playerHUD.GetComponent<UIPlayerHealth>().DisplayRespawn(respawnTime);
+        playerHUD.GetComponent<UIPlayer>().DisplayRespawn(respawnTime);
         
         if (string.IsNullOrEmpty(otherPlayerName)) otherPlayerName = PhotonNetwork.LocalPlayer.NickName;
 
-        playerHUD.GetComponent<UIPlayerHealth>().otherPlayerName.text = string.Format($"Killed By: <color=#ff270b>[{otherPlayerName}]</color>");
+        playerHUD.GetComponent<UIPlayer>().otherPlayerName.text = string.Format($"Killed By: <color=#ff270b>[{otherPlayerName}]</color>");
         
         var _spectatorCam = playerController.transform.Find("Cameras/SpectatorCamera");
         SpectatorCamera(_spectatorCam.gameObject);
@@ -308,6 +366,25 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         PhotonNetwork.Destroy(_spectatorCam.gameObject);
 
         SpawnPlayer();
+    }
+
+    public void SpectatorCamera(GameObject spectatorCam) // TEMPORARY UNTIL DISCOVER SOLUTION 
+    {
+        spectatorCam.transform.SetParent(null);
+        spectatorCam.GetComponent<Camera>().enabled = true;
+        spectatorCam.GetComponent<AudioListener>().enabled = true;
+    }
+
+    public override void OnLeftRoom()
+    {
+        foreach (PlayerInfo _playerInfo in playerInfo)
+        {
+            if (_playerInfo.playerActor != PhotonNetwork.LocalPlayer.ActorNumber) { return; }
+            
+            playerInfo.Remove(_playerInfo);
+        }
+
+        PhotonNetwork.Destroy(this.gameObject);
     }
 
     public void OnEvent (EventData photonEvent)
@@ -327,6 +404,9 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
                 break;
             case EventCodes.ChangeStat:
                 ChangeStatReceive(objArr);
+                break;
+            case EventCodes.RefreshTimer:
+                RefreshTimerReceive(objArr);
                 break;
         }
     }
@@ -349,14 +429,14 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void NewPlayerSend (ProfileData profileData)
     {
-        object[] package = new object[7];
+        object[] package = new object[6];
 
         package[0] = profileData.username;
         package[1] = profileData.level;
         package[2] = profileData.xp;
         package[3] = PhotonNetwork.LocalPlayer.ActorNumber;
-        package[4] = (short) 0;
-        package[5] = (short) 0;
+        package[4] = (short) 0; // kills
+        package[5] = (short) 0; // deaths
 
         SendPackage((byte)EventCodes.NewPlayer, package, ReceiverGroup.MasterClient, true);
     }
@@ -392,7 +472,7 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         package[0] = state;
         for (int i = 0; i < info.Count; i++)
         {
-            object[] piece = new object[7];
+            object[] piece = new object[6];
 
             piece[0] = info[i].profile.username;
             piece[1] = info[i].profile.level;
@@ -404,7 +484,51 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
             package[i + 1] = piece;
         }
 
-        SendPackage((byte)EventCodes.UpdatePlayers, package, ReceiverGroup.All, true);
+        UpdatePlayersReceive_Master(package);
+        SendPackage((byte)EventCodes.UpdatePlayers, package, ReceiverGroup.Others, true);
+    }
+
+    public void UpdatePlayersReceive_Master (object[] data)
+    {
+        currentState = (GameState)data[0];
+
+        //check if there is a new player
+        if (playerInfo.Count < data.Length - 1)
+        {
+            foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("PlayerManager"))
+            {
+                //if so, resync our local player information
+                gameObject.GetComponent<PlayerManager>().TrySync();
+            }
+        }
+
+        playerInfo = new List<PlayerInfo>();
+        Debug.Log("Reset playerInfo");
+
+        for (int i = 1; i < data.Length; i++)
+        {
+            object[] extract = (object[]) data[i];
+
+            PlayerInfo _playerInfo = new PlayerInfo (
+                new ProfileData (
+                    (string) extract[0],
+                    (int) extract[1],
+                    (int) extract[2]
+                ),
+                (int) extract[3],
+                (short) extract[4],
+                (short) extract[5]
+            );
+
+            playerInfo.Add(_playerInfo);
+
+            if (PhotonNetwork.LocalPlayer.ActorNumber == _playerInfo.playerActor)
+            {
+                myIndex = i - 1;
+            }
+        }
+
+        StateCheck();
     }
 
     public void UpdatePlayersReceive (object[] data)
@@ -422,6 +546,7 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
 
         playerInfo = new List<PlayerInfo>();
+        Debug.Log("Reset playerInfo");
 
         for (int i = 1; i < data.Length; i++)
         {
@@ -493,5 +618,18 @@ public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
 
         ScoreCheck();
+    }
+
+    public void RefreshTimerSend()
+    {
+        object[] package = new object[] { GameManager.Instance.remainingMatchTime };
+
+        SendPackage((byte)EventCodes.RefreshTimer, package, ReceiverGroup.All, true);
+    }
+
+    public void RefreshTimerReceive(object[] data)
+    {
+        GameManager.Instance.remainingMatchTime = (int)data[0];
+        RefreshTimerUI();
     }
 }

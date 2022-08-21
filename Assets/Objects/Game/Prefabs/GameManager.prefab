@@ -431,13 +431,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e32a19cda2ecc004d945bcb877b4c012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objectiveCount: 5
+  objectiveCount: 20
+  matchLength: 600
+  remainingMatchTime: 0
   isWinner: 0
   winnerSound: {fileID: 8300000, guid: 706bb80ab05935646bbb142a2b2d15e9, type: 3}
   loserSound: {fileID: 8300000, guid: 18825f0ac3e330e49980e569f25cc43b, type: 3}
   mapName: 
   gamemodeName: 
-  gamemode: 0
+  gameMode: 0
+  gameType: 0
   state: 0
   startingLoadout:
   - {fileID: -3703579111405869546, guid: 12d4865429891ca4bb04f45934cf32e3, type: 3}

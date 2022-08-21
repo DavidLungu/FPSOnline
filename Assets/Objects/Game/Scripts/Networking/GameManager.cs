@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Photon.Pun;
 using TMPro;
 
@@ -10,6 +11,12 @@ public enum GameMode
     FFA,
     TDM
 }
+
+public enum GameType
+{
+    Elimination
+}
+
 
 public enum GameState
 {
@@ -23,6 +30,8 @@ public class GameManager : MonoBehaviourPunCallbacks
 {
     [Header("Match Details")]
     public int objectiveCount;
+    public int matchLength;
+    [HideInInspector] public int remainingMatchTime;
     public bool isWinner;
     [SerializeField] private AudioClip winnerSound, loserSound;
     public int playerCount { get; set; }
@@ -31,18 +40,19 @@ public class GameManager : MonoBehaviourPunCallbacks
     [Space]
     public string mapName;
     public string gamemodeName;
-    public GameMode gamemode = GameMode.FFA;
+    public GameMode gameMode = GameMode.FFA;
+    public GameType gameType = GameType.Elimination;
     public GameState state = GameState.Waiting;
     public Weapon[] startingLoadout;
 
     [SerializeField] private GameObject uiWaitForPlayers;
 
-    [Header("Timer")]
+    [Header("Countdown Timer")]
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private GameObject timerTextTransform;
     [SerializeField] private float countdownTime = 4.0f;
-    private float previousTime;
-    private float timeRemaining;
+    private float previousCountdownTime;
+    private float countdownTimeRemaining;
     
     
     [Header("Misc")]
@@ -50,12 +60,16 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] private AudioSource audioSource;
     public GameObject playerManager { get; private set; }
 
+    private List<SpawnPoint> playerSpawns = new List<SpawnPoint>();
+
     private string mainMenu;
 
     public static GameManager Instance;
     
     private void Awake() 
     {
+        if (!PhotonNetwork.IsConnected) SceneManager.LoadScene(0);
+
         if (Instance == null) {
             Instance = this;
         }
@@ -73,7 +87,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         mainMenu = RoomManager.Instance.mainMenu;
         mapName = RoomManager.Instance.selectedMapName;
         gamemodeName = RoomManager.Instance.selectedGamemode;
-        timeRemaining = countdownTime;
+        countdownTimeRemaining = countdownTime;
     }
 
     private void Update()
@@ -92,25 +106,25 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void StartCountdown()
     {
-        if (timeRemaining <= 1)
+        if (countdownTimeRemaining <= 1)
         {
             //audioSource.clip = countdownCompleteSound;
             
-            if(timeRemaining <= 0) 
+            if(countdownTimeRemaining <= 0) 
             {            
-                timeRemaining = 0;
+                countdownTimeRemaining = 0;
                 if (PhotonNetwork.IsMasterClient) photonView.RPC(nameof(StartMatch), RpcTarget.AllBufferedViaServer);
             }
         }
 
-        if (previousTime != (int)timeRemaining)
+        if (previousCountdownTime != (int)countdownTimeRemaining)
         {
             //audioSource.Play();
         }
-        previousTime = (int)timeRemaining;
+        previousCountdownTime = (int)countdownTimeRemaining;
 
-        timeRemaining -= Time.deltaTime;
-        timerText.text = (timeRemaining).ToString("00");
+        countdownTimeRemaining -= Time.deltaTime;
+        timerText.text = (countdownTimeRemaining).ToString("00");
     }
 
     public List<SpawnPoint> GetSpawnPoints() 
@@ -126,7 +140,8 @@ public class GameManager : MonoBehaviourPunCallbacks
 
             availableSpawns.Add(_spawnPoint);
         }
-
+        
+        playerSpawns = availableSpawns;
         return availableSpawns;
     }
 

@@ -23,8 +23,8 @@ public class WeaponSway : MonoBehaviour
         weaponSwayIntensity = WeaponScript.GetWeaponData().weaponSwayIntensity;
         weaponSwaySmoothing = WeaponScript.GetWeaponData().weaponSwaySmoothing;
 
-        float _mouseX = Input.GetAxisRaw("Mouse X") * weaponSwayIntensity;
-        float _mouseY = Input.GetAxisRaw("Mouse Y") * weaponSwayIntensity;
+        float _mouseX = Input.GetAxisRaw(InputManager.ROTATION_X) * weaponSwayIntensity;
+        float _mouseY = Input.GetAxisRaw(InputManager.ROTATION_Y) * weaponSwayIntensity;
         
         Sway(_mouseX, _mouseY);
     }

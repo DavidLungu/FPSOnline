@@ -7,11 +7,12 @@ public class CameraController : MonoBehaviour
 {
     [Header("Properties")]
     [SerializeField] private float sensitivity;
-    [SerializeField] private float sensitivityMultiplier;
+    [SerializeField] private float defaultSensitivityMultiplier = 0.2f;
+    private float sensitivityMultiplier;
 
     [SerializeField] private Transform orientation;
     [SerializeField] private Transform playerModel;
-    [SerializeField] private Transform weaponManager;
+    [SerializeField] private WeaponManager weaponManager;
     [SerializeField] private Transform cameraRot;
     [SerializeField] private Camera mainViewCam, viewModelCam, spectatorCam;
     private Vector2 mousePos;
@@ -46,6 +47,7 @@ public class CameraController : MonoBehaviour
     {
         if (!pv.IsMine) { return; }
 
+        WeaponAimSensitivity();
         UpdateCameraRotation();
     }
 
@@ -58,8 +60,8 @@ public class CameraController : MonoBehaviour
 
     private void UpdateCameraRotation() 
     {
-        mousePos.x = Input.GetAxis("Mouse X");
-        mousePos.y = Input.GetAxis("Mouse Y");
+        mousePos.x = Input.GetAxisRaw(InputManager.ROTATION_X);
+        mousePos.y = Input.GetAxisRaw(InputManager.ROTATION_Y);
 
         cameraRotation.y +=  mousePos.x * sensitivity * sensitivityMultiplier;
         cameraRotation.x -= mousePos.y * sensitivity * sensitivityMultiplier;
@@ -74,6 +76,17 @@ public class CameraController : MonoBehaviour
         playerModel.transform.localRotation = orientation.localRotation;
 
         spectatorCam.transform.localRotation = cameraRot.localRotation;
+    }
+
+    private void WeaponAimSensitivity()
+    {
+        if (weaponManager.GetComponent<WeaponManager>().GetCurrentWeapon().isAiming)
+        {
+            sensitivityMultiplier =  (defaultSensitivityMultiplier * weaponManager.GetCurrentWeapon().GetWeaponData().aimSensitivityMultiplier) / 10f;
+        }
+        else {
+            sensitivityMultiplier = defaultSensitivityMultiplier / 10f;
+        }
     }
 
     private void SetCursor() 

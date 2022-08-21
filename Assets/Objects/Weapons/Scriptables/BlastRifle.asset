@@ -34,6 +34,8 @@ MonoBehaviour:
   playerAimFOVMultiplier: 0.85
   weaponAimFOVMultiplier: 0.45
   scopeAimFOVMultiplier: 0
+  scopeAimZoomFOVMultiplier: 0
+  aimSensitivityMultiplier: 0.8
   weaponSwayIntensity: 1.8
   weaponSwaySmoothing: 8
   bulletHolePrefab: {fileID: 2103346097670830839, guid: 50a2d4c7097e78047ae1f7313e32161f, type: 3}

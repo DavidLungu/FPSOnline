@@ -9,6 +9,8 @@ public class UILeaderboard : MonoBehaviour
 {
     public GameObject leaderboardObject;
     [SerializeField] private Transform playerCardHolder;
+
+    public int enemyObjective { get; private set; }
     
     [Header("Match Details")]
     [SerializeField] private TMP_Text mapName;
@@ -16,8 +18,8 @@ public class UILeaderboard : MonoBehaviour
 
     public void Leaderboard(string mapName, string gamemodeName, List<PlayerInfo> playerInfo)
     {
-        if (GameManager.Instance.gamemode == GameMode.FFA) gamemodeName = "FFA";
-        if (GameManager.Instance.gamemode == GameMode.TDM) gamemodeName = "TDM";
+        if (GameManager.Instance.gameMode == GameMode.FFA) gamemodeName = "FFA";
+        if (GameManager.Instance.gameMode == GameMode.TDM) gamemodeName = "TDM";
 
         for (int i = 2; i < playerCardHolder.childCount; i++)
         {
@@ -55,7 +57,7 @@ public class UILeaderboard : MonoBehaviour
         leaderboardObject.gameObject.SetActive(true);
     }
 
-    private List<PlayerInfo> SortPlayers(List<PlayerInfo> playerInfo)
+    public List<PlayerInfo> SortPlayers(List<PlayerInfo> playerInfo)
     {
         List<PlayerInfo> sortedPlayerInfo = new List<PlayerInfo>();
 
@@ -70,7 +72,12 @@ public class UILeaderboard : MonoBehaviour
                 if (info.kills > highest)
                 {
                     selection = info;
-                    highest = info.kills;
+
+                    if (GameManager.Instance.gameType == GameType.Elimination) { 
+                        highest = info.kills; 
+                    }
+                    
+                    enemyObjective = highest; 
                 }
             }
             sortedPlayerInfo.Add(selection);

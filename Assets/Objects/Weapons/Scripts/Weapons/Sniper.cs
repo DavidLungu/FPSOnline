@@ -34,7 +34,6 @@ public class Sniper : Weapon
         base.Update();
 
         scopeCamera.transform.position = aimBulletSpawn.position;
-        scopeCamera.fieldOfView = weaponData.scopeAimFOVMultiplier;
 
         ToggleScope();
     }
@@ -54,14 +53,14 @@ public class Sniper : Weapon
 
         Vector3 _target = defaultWeaponPosition;
 
-        if(Input.GetMouseButton(1) && canAim) {
+        if(Input.GetButton(InputManager.AIM) && canAim) {
             _target = aimingWeaponPosition;
         } 
         else {
             _target = defaultWeaponPosition;
         }
 
-        if (Input.GetMouseButtonDown(1) && canAim) 
+        if (Input.GetButtonDown(InputManager.AIM) && canAim) 
         {
             PlaySound(3, weaponData.aimAudioDistance, false);
         } 
@@ -86,6 +85,14 @@ public class Sniper : Weapon
     
             scopeCamera.gameObject.SetActive(true);
             scopeTexture.SetActive(true);
+
+            if (Input.GetButton(InputManager.SPRINT))
+            {
+                scopeCamera.fieldOfView = Mathf.Lerp(scopeCamera.fieldOfView, weaponData.scopeAimFOVMultiplier * weaponData.scopeAimZoomFOVMultiplier, Time.deltaTime * 8f);
+            }
+            else {
+                scopeCamera.fieldOfView = Mathf.Lerp(scopeCamera.fieldOfView, weaponData.scopeAimFOVMultiplier, Time.deltaTime * 8f);
+            }
 
         }    
         else {

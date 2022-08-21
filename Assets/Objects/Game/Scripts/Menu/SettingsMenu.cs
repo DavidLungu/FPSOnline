@@ -7,20 +7,23 @@ public class SettingsMenu : MonoBehaviour
 {
     [SerializeField] private TMP_Dropdown resolutionOptions;
     private FullScreenMode windowMode;
-    [SerializeField] private AudioSource[] audioSources;
-    [SerializeField] Slider volumeSlider;
+    [SerializeField] private AudioSource[] soundEffectSources;
+    [SerializeField] private AudioSource musicSource;
+    [SerializeField] Slider sfxSlider, musicSlider;
 
-      public int frameTarget = 60;
+      public int frameTarget = 120;
       
       private void Awake()
       {
-          QualitySettings.vSyncCount = 0;
+        QualitySettings.vSyncCount = 0;
+        //Application.targetFrameRate = frameTarget;
       }
       
       private void Update()
       {
-        SetVolume(volumeSlider.value);
-        SetWindowSize(resolutionOptions.value);
+        SetVolumeSFX(sfxSlider.value);
+        SetVolumeMusic(musicSlider.value);
+        //SetWindowSize(resolutionOptions.value);
       }
 
     public void SetWindowMode(string _windowMode)
@@ -52,11 +55,16 @@ public class SettingsMenu : MonoBehaviour
         //QualitySettings.renderPipeline = qualityLevels[value];
     }
 
-    public void SetVolume(float volume)
+    public void SetVolumeSFX(float volume)
     {
-        foreach(AudioSource audioSource in audioSources)
+        foreach(AudioSource audioSource in soundEffectSources)
         {
             audioSource.volume = volume;
         }
+    }
+
+    public void SetVolumeMusic(float volume)
+    {
+        musicSource.volume = volume;
     }
 }

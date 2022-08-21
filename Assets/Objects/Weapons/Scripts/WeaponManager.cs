@@ -36,12 +36,10 @@ public class WeaponManager : MonoBehaviourPunCallbacks {
         if(!pv.IsMine) { return; }
         if (currentWeapon == null) return;
 
-        for(int i = 0; i < loadout.Count; i++) 
+        if (Input.GetButtonDown(InputManager.SWAP_WEAPON)) 
         {
-            if (Input.GetKeyDown((i + 1).ToString())) {
-                transform.root.GetComponent<PlayerController>().canSprint = true;
-                Equip(i);
-            }
+            transform.root.GetComponent<PlayerController>().canSprint = true;
+            Equip((loadout[1] != null && loadout[1] != currentWeapon) ? 1 : 0);
         }
         
         for (int i = 0; i < loadout.Count; i++) 
@@ -130,7 +128,7 @@ public class WeaponManager : MonoBehaviourPunCallbacks {
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
     {
-        if (!pv.IsMine && targetPlayer == pv.Owner) {
+        if (!pv.IsMine && targetPlayer == pv.Owner && changedProps.ContainsKey("weaponIndex")) {
             Equip((int)changedProps["weaponIndex"]);
         }
     }

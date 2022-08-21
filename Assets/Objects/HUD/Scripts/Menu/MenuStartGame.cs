@@ -11,76 +11,111 @@ public class MenuStartGame : MonoBehaviour
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private Transform timerTextTransform;
 
-    private float countdownTime = 0f;
+    private float countdownTime = 4f;
     private float previousTime;
     private float timeRemaining;
     private bool isTimerRunning;
 
-    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioSource countdownSource, musicSource;
     [SerializeField] private AudioClip countdownSound, countdownCompleteSound;
 
-    private PhotonView PV;
+    private float defaultMusicVolume;
+    private bool isMusicFading;
+
+    private PhotonView pv;
+
+    private void OnEnable()
+    {
+        defaultMusicVolume = musicSource.volume;
+    }
+
+    private void Awake()
+    {
+        pv = GetComponent<PhotonView>();
+    }
 
     private void Start() 
     {
-        PV = GetComponent<PhotonView>();
-
-        EndCountdown();
+        if (pv.IsMine)
+            EndCountdown();
     }
 
     private void Update()
     {
-        if (isTimerRunning)
-        {
-            StartCountdown();
-        } 
-        else {
-            EndCountdown();
+        if (!pv.IsMine) return;
+
+        if (PhotonNetwork.IsMasterClient) 
+        {   
+            if (isTimerRunning)
+            {
+                pv.RPC(nameof(StartCountdown), RpcTarget.All);
+            } else {
+                pv.RPC(nameof(EndCountdown), RpcTarget.All);
+            }
         }
     }
 
+    [PunRPC]
     private void StartCountdown()
     {
-        PV.RPC(nameof(Launcher.Instance.StartGame), RpcTarget.All);
-        
         if(timeRemaining <= 1)
         {
-            audioSource.clip = countdownCompleteSound;
+            countdownSource.clip = countdownCompleteSound;
             
             if(timeRemaining <= 0) 
+            {
+                timeRemaining = 0;
+                musicSource.Stop();
                 Launcher.Instance.StartGame();
+            }
+
         }
 
-        if(previousTime != (int)timeRemaining)
+        if (previousTime != (int)timeRemaining)
         {
-            audioSource.Play();
+            countdownSource.Play();
         }
         previousTime = (int)timeRemaining;
 
         timeRemaining -= Time.deltaTime;
+        musicSource.volume = ((timeRemaining / countdownTime) - 0.1f) * defaultMusicVolume;
         timerText.text = ((int)timeRemaining).ToString();
     }
 
+    [PunRPC]
     private void EndCountdown()
     {
+        isMusicFading = false;
+
         timerTextTransform.gameObject.SetActive(false);
+        musicSource.volume = Mathf.Lerp(musicSource.volume, defaultMusicVolume, Time.deltaTime * 2f);
     }
 
     [PunRPC]
     public void DisableLeaveButton()
-{   
+    {   
         leaveButton.SetActive(!leaveButton.activeSelf);
+    }
+
+    [PunRPC]
+    private void ClickEvent()
+    {
+        countdownSource.clip = countdownSound;
+        isTimerRunning = !isTimerRunning;
+
+        timerTextTransform.gameObject.SetActive(isTimerRunning);
+        
+        timeRemaining = countdownTime;
+        previousTime = countdownTime;
     }
 
     public void OnClick()
     {
-        audioSource.clip = countdownSound;
-        isTimerRunning = !isTimerRunning;
+        if (PhotonNetwork.IsMasterClient)
+        {
+            pv.RPC(nameof(DisableLeaveButton), RpcTarget.All);
+        }
 
-        timerTextTransform.gameObject.SetActive(isTimerRunning);
-        PV.RPC(nameof(DisableLeaveButton), RpcTarget.All);
-        
-        timeRemaining = countdownTime;
-        previousTime = countdownTime;
+        pv.RPC(nameof(ClickEvent), RpcTarget.All);
     }
 }
